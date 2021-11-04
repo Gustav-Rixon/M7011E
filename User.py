@@ -15,12 +15,17 @@ class User:
         pass
     
     #Takes in wind from system to generate fixed amount
-    def generate():
-        pass
+    def generate(wind):
+        Api.wind = generate
+        return generate
 
     #buy electricity
     def buy(blackout):
-        pass
+        if(blackout):
+            buy=0
+        else:
+            buy = usage - generate
+        return buy
 
     # if a user builds a turbine after creation
     def buildturbine(turbine):
