@@ -12,7 +12,11 @@ class User:
 
     #sell electricity only if you have a turbine
     def sell (turbine):
-        pass
+        if (usage < generate):
+            sell = usage - generate
+            return sell
+        else :
+            buy(False)
     
     #Takes in wind from system to generate fixed amount
     def generate(wind):
