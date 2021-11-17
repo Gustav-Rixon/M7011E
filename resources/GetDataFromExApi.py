@@ -19,3 +19,13 @@ def get_station_data_wind():
     data_outside.raise_for_status()
     with open("dataWind.json", "w") as file:
         file.write(data_outside.text)
+
+
+def get_station_data():
+    # HOW OFTEN TO UPDATE????? THIS ONE NOT SO MUCH
+    # Get station information without values
+    data_station = requests.get(
+        "https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/34/station-set/all/period/latest-hour/data.json")
+    data_station.raise_for_status()
+    with open("data.json", "w") as file:
+        file.write(data_station.text)
