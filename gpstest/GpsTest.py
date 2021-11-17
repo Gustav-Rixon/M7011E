@@ -66,5 +66,5 @@ def get_temp(key):
             return p['value'][0]['value']
 
 
-#print(get_wind(int(get_close(lon, lat))))
+print(get_wind(int(get_close(lon, lat))))
 #print(get_temp(int(get_close(lon, lat))))
