@@ -4,7 +4,6 @@ import requests
 import re
 import json
 
-
 # TODO
 # ADD USER INPUT
 
@@ -20,7 +19,7 @@ lat = float(test[0]['lat'])
 
 
 def get_close(lon, lat):
-    # Get closest station
+    # Get closest station and the distans between the points
     f = open('data.json',)
     data = json.load(f)
 
@@ -37,7 +36,7 @@ def get_close(lon, lat):
             currentD = d
             closestStation = p['key']
 
-    return closestStation
+    return closestStation,currentD
 
 
 def distance(lon1, lat1, lon2, lat2):
@@ -45,7 +44,7 @@ def distance(lon1, lat1, lon2, lat2):
     R = 6371000  # radius of the Earth in m
     x = (lon2 - lon1) * cos(0.5*(lat2+lat1))
     y = (lat2 - lat1)
-    return R * sqrt(x*x + y*y)
+    return (2*pi*R/360) * sqrt( x*x + y*y )
 
 
 def get_wind(key):
@@ -66,5 +65,5 @@ def get_temp(key):
             return p['value'][0]['value']
 
 
-print(get_wind(int(get_close(lon, lat))))
-#print(get_temp(int(get_close(lon, lat))))
+#print('wind ' + get_wind(int(get_close(lon, lat)[0])) + ' m/s')
+#print('temp ' + get_temp(int(get_close(lon, lat)[0])) + ' c')
