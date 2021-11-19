@@ -20,6 +20,14 @@ export default class SignUp extends Component {
                     <label>Email address</label>
                     <input type="email" className="form-control" placeholder="Enter email" />
                 </div>
+                <div className="form-group">
+                    <label>Address</label>
+                    <input type="adress" className="form-control" placeholder="Enter home adress" />
+                </div>
+                <div className="form-group">
+                    <label>Post code</label>
+                    <input type="code" className="form-control" placeholder="Enter the post code for your home adress" />
+                </div>
 
                 <div className="form-group">
                     <label>Password</label>
