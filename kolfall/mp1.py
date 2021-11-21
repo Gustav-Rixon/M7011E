@@ -1,7 +1,9 @@
+from multiprocessing import Process, Pipe
 from math import floor
 from resources.GpsTest import *
 import numpy as np
 import statistics
+from multiprocessing import Process, Queue, Pipe
 
 
 def calc_wind(address, zipcode):
@@ -20,15 +22,13 @@ def calc_wind(address, zipcode):
 
     closest_station_distance = closest_station[1]
 
-    while True:
-        if (closest_station_distance > 3000):
-            noise = statistics.median(np.random.normal(
-                0, 1, floor(closest_station_distance/10)))
-        else:
-            noise = statistics.median(np.random.normal(0, 0.1, 1000))
+    if (closest_station_distance > 3000):
+        noise = statistics.median(np.random.normal(
+            0, 1, floor(closest_station_distance/10)))
+    else:
+        noise = statistics.median(np.random.normal(0, 0.1, 1000))
 
-        wind = float(wind) + noise
-        print(wind)
+    wind = float(wind) + noise
     return wind
 
 
@@ -53,9 +53,13 @@ def calc_temp(address, zipcode):
             0, 1, floor(closest_station_distance/10)))
     else:
         noise = statistics.median(np.random.normal(0, 0.1, 1000))
-
     temp = float(temp) + noise
     return temp
 
 
-calc_wind("Strandvägen 5", "104 40")
+def send_info_test(child_conn, address, zipcode):
+
+    list = calc_temp(address, zipcode), calc_wind(
+        address, zipcode)
+    child_conn.send(list)
+    child_conn.close()
