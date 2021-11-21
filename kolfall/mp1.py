@@ -45,8 +45,13 @@ def calc_temp(address, zipcode):
     return temp
 
 
-def send_info_test(child_conn, address, zipcode):
-    list = calc_temp(address, zipcode), calc_wind(
-        address, zipcode)
-    child_conn.send(list)
+def send_info_temp(child_conn, address, zipcode):
+    data = calc_temp(address, zipcode)
+    child_conn.send(data)
+    child_conn.close()
+
+
+def send_info_wind(child_conn, address, zipcode):
+    data = calc_wind(address, zipcode)
+    child_conn.send(data)
     child_conn.close()
