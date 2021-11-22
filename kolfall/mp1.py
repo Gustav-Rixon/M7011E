@@ -1,5 +1,7 @@
 from multiprocessing import Process, Pipe
 from math import floor
+
+from flask.scaffold import F
 from resources.GpsTest import *
 import numpy as np
 import statistics
@@ -23,6 +25,8 @@ def calc_wind(address, zipcode):
         noise = statistics.median(np.random.normal(0, 0.1, 1000))
 
     wind = float(wind) + noise
+    print(f"I WAS GAY {wind}")
+    print(f"I WAS GAY {closest_station_distance}")
     return wind
 
 
@@ -45,6 +49,22 @@ def calc_temp(address, zipcode):
     return temp
 
 
+def calc_electricity_consumption(address, zipcode):
+    temp = calc_temp(address, zipcode)
+    consumption = statistics.median(np.random.normal(
+            0, 1, 100))
+    return abs(consumption-temp)
+
+
+def calc_production(prosumer, address, zipcode):
+    if(prosumer == True):
+        return calc_wind(address, zipcode)/2
+    else:
+        return 0
+        
+
+
+#ISSU returns the same value?
 def send_info_temp(child_conn, address, zipcode):
     data = calc_temp(address, zipcode)
     child_conn.send(data)
@@ -55,3 +75,4 @@ def send_info_wind(child_conn, address, zipcode):
     data = calc_wind(address, zipcode)
     child_conn.send(data)
     child_conn.close()
+
