@@ -1,5 +1,7 @@
+import logging
+import threading
+import time
 from multiprocessing import Process, Queue, Pipe
-
 from flask.app import Flask
 from mp1 import send_info_temp, send_info_wind
 from Simulator import Simulator
@@ -29,4 +31,6 @@ def get_weather_data_wind(address, zipcode):
 
 
 if __name__ == "__main__":
+    x = threading.Thread(target=Simulator.run)
+    x.start()
     app.run()
