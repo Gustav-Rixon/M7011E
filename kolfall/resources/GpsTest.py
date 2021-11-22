@@ -7,15 +7,12 @@ import json
 # TODO
 # ADD USER INPUT
 
+
 def get_data(address, postalCode):
+    print("*****************************YOU DID A REQUEIST*****************************")
     data = requests.get(
         f"https://nominatim.openstreetmap.org/search.php?street={address}&postalcode={postalCode}&format=jsonv2")._content
     return data
-
-
-test = json.loads(get_data("Strandvägen 5", "104 40"))
-lon = float(test[0]['lon'])
-lat = float(test[0]['lat'])
 
 
 def get_close(lon, lat):
@@ -36,7 +33,7 @@ def get_close(lon, lat):
             currentD = d
             closestStation = p['key']
 
-    return closestStation,currentD
+    return closestStation, currentD
 
 
 def distance(lon1, lat1, lon2, lat2):
@@ -44,7 +41,7 @@ def distance(lon1, lat1, lon2, lat2):
     R = 6371000  # radius of the Earth in m
     x = (lon2 - lon1) * cos(0.5*(lat2+lat1))
     y = (lat2 - lat1)
-    return (2*pi*R/360) * sqrt( x*x + y*y )
+    return (2*pi*R/360) * sqrt(x*x + y*y)
 
 
 def get_wind(key):
