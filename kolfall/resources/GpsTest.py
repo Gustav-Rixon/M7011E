@@ -8,6 +8,7 @@ import json
 # ADD USER INPUT
 
 
+# Should ONLY be called at user creasion/moving
 def get_data(address, postalCode):
     print("*****************************YOU DID A REQUEIST*****************************")
     data = requests.get(
