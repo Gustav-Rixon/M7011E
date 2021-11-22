@@ -10,15 +10,13 @@ class Simulator:
         self._temp = 0
         self._processes = []
 
-    # getter method
     def get_wind(self):
         return self._wind
 
     def get_processes(self):
         return self._processes
 
-    # setter method
-    @rate_limited(1/10, mode='wait')
+    @rate_limited(1/10, mode='kill')
     def set_wind(self, address, zipcode):
         parent_conn, child_conn = Pipe()
         p = Process(target=send_info_wind, args=(
@@ -29,7 +27,7 @@ class Simulator:
     def get_temp(self):
         return self._temp
 
-    @rate_limited(1/10, mode='wait')
+    @rate_limited(1/10, mode='kill')
     def set_temp(self, address, zipcode):
         parent_conn, child_conn = Pipe()
         p = Process(target=send_info_temp, args=(
@@ -37,11 +35,12 @@ class Simulator:
         p.start()
         self._temp = parent_conn.recv()
 
+    def run():
+        while True:
+            print("RUNNING")
+            sleep(10)
+
 
 # On Windows the subprocesses will import (i.e. execute) the main module at start. You need to insert an if __name__ == '__main__': guard in the main module to avoid creating subprocesses
-if __name__ == '__main__':
-    raj = Simulator()
-    while True:
-        raj.set_temp("Strandv%C3%A4gen%205", "104%2040")
 
-    print(raj.get_temp())
+#set_temp("Strandv%C3%A4gen%205", "104%2040")
