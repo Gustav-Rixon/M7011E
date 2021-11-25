@@ -11,7 +11,7 @@ const db = mysql.createPool({
 });
 
 app.get('/', (req, res) =>{
-    const sqlInsert = "INSERT INTO User (name, adress, zip, password) VALUES ('inception', 'hej', 'test', 'test2');"
+    const sqlInsert = "INSERT INTO user (name, adress, zip, password) VALUES ('inception', 'hej', 'test', 'test2');"
     db.query(sqlInsert, (err, result)=>{
         res.send('hello world')  
     })
