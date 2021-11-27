@@ -10,6 +10,14 @@ const db = mysql.createPool({
     database: 'plsWork'
 });
 
+app.post('/api/insert', (req, res)=>{
+
+    const sqlInsert = "INSERT INTO user (name, adress, zip, password) VALUES (?,?,?,?)"
+    db.query(sqlInsert, [name, adress, zip, password], (err, result)=> {
+        
+    });
+
+});
 app.get('/', (req, res) =>{
     const sqlInsert = "INSERT INTO user (name, adress, zip, password) VALUES ('inception', 'hej', 'test', 'test2');"
     db.query(sqlInsert, (err, result)=>{
