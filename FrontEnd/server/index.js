@@ -17,7 +17,7 @@ const db = mysql.createConnection({
 app.get('/get', (req,res) => {
     const sqlSelect = "SELECT * FROM user";
     db.query(sqlSelect, (err, result) => {
-        console.log(result)
+        //console.log(result)
 
     });
 });
@@ -42,5 +42,26 @@ app.post("/register", (req, res)=>{
     );
 
 });
+app.post("/login", (req, res)=>{
 
+    const name = req.body.loginName;
+    const password = req.body.loginPassword;
+    //TODO fixa querry för ny databas
+    //const sqlInsert = "INSERT INTO user (name, email, adress, zip, password) VALUES (?,?,?,?,?)";
+    db.query("SELECT * FROM user WHERE name = ? AND password = ?", 
+    [name,password], 
+    (err, result)=> {
+        if(err) {
+            res.send({err: err});
+        }else{
+         if(result.length > 0){
+             res.send(result);
+         } else {
+             res.send({message: "Login information is invalid. Please check both username and password."});
+         }
+        }
+    }
+    );
+
+});
 app.listen(3001);

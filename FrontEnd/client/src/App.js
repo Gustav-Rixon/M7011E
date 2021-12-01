@@ -1,7 +1,7 @@
-
-import { useState} from 'react';
+import { useEffect, useState} from 'react';
 import './App.css';
 import Axios from 'axios';
+
 
 
 function App() {
@@ -11,6 +11,8 @@ function App() {
   const[zip, setZip] = useState(0);
   const[password, setPassword] = useState("");
   const[email, setEmail] = useState("");
+  const[loginName, setLoginName] = useState("");
+  const[loginPassword, setLoginPassword] = useState("");
 
   const submitRegistration = () => {
     Axios.post("http://localhost:3001/register", {
@@ -23,11 +25,22 @@ function App() {
       alert("Added successfully to Kolfall")
     });
   };
+  const submitLogin = () => {
+    Axios.post("http://localhost:3001/login", {
+      loginName: loginName,
+      loginPassword: loginPassword
+    }).then((response)=> {
+      console.log(response);
+    });
+  }
   //Behöver lägga till/ta bost grejer för nya databasen
   return (
     <div className="App">
-      <h1>Register</h1>
-      <div className ="form">
+      <h1> Kolfall </h1>
+
+
+      <div className ="Register">
+        <h2>Register</h2>
         <label> Name </label>
       <input type="text" name = "name" onChange={(event)=>{
         setName(event.target.value)
@@ -45,16 +58,28 @@ function App() {
         setZip(event.target.value)
       }}/>
       <label> Password </label>
-      <input type="text" name = "password" onChange={(event)=>{
+      <input type="password" name = "password" onChange={(event)=>{
         setPassword(event.target.value)
       }}/>
       <label>Prosumer</label>
       <input type="checkbox" name = "checkbox" />
-      <button onClick ={submitRegistration}> Submit</button>
+      <button onClick ={submitRegistration}> Register</button>
+      </div>
+
+
+      <div className = "Login" >
+      <h1>Login</h1>
+      <label> Name </label>
+      <input type="text" name = "loginName" onChange={(event)=>{
+        setLoginName(event.target.value)
+      }}/><label> Password </label>
+      <input type="password" name = "loginPassword" onChange={(event)=>{
+        setLoginPassword(event.target.value)
+      }}/>
+      <button onClick ={submitLogin}> Login</button>
       </div>
     </div>
   );
 }
 
 export default App;
-
