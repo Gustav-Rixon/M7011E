@@ -35,12 +35,15 @@ class Simulator:
         p.start()
         self._temp = parent_conn.recv()
 
-    def run():
+    def run(self):
         while True:
             print("RUNNING")
+            self.set_temp("Strandv%C3%A4gen%205", "104%2040")
+            sleep(10)
+            print(self.get_temp())
             sleep(10)
 
 
 # On Windows the subprocesses will import (i.e. execute) the main module at start. You need to insert an if __name__ == '__main__': guard in the main module to avoid creating subprocesses
 
-#set_temp("Strandv%C3%A4gen%205", "104%2040")
+#set_temp(0,"Strandv%C3%A4gen%205", "104%2040")
