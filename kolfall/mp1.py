@@ -8,48 +8,44 @@ import statistics
 from multiprocessing import Process, Queue, Pipe
 
 
-def calc_wind(address, zipcode):
+def calc_wind(station_id, distance):
     # take the wind data from SMHI and apply noice depending and distance
-    data = json.loads(get_data(address, zipcode))
-    print(data)
-    lon = float(data[0]['lon'])
-    lat = float(data[0]['lat'])
-    closest_station = get_close(lon, lat)
-    closest_station_id = closest_station[0]
-    wind = get_wind(int(closest_station_id))
-    closest_station_distance = closest_station[1]
+    wind = get_wind(station_id)
 
-    if (closest_station_distance > 3000):
+    if (distance > 3000):
         noise = statistics.median(np.random.normal(
-            0, 1, floor(closest_station_distance/10)))
+            0, 1, floor(distance/10)))
     else:
         noise = statistics.median(np.random.normal(0, 0.1, 1000))
 
     wind = float(wind) + noise
-    return wind
+    return abs(wind)
 
 
-def calc_temp(address, zipcode):
-    # take the temp data from SMHI and apply noice depending and distance
+# Calculates the closest station and returns its id and distans
+# TODO VAR FÖR KAN DEN INTE TA EMOT ÅÄÖ NU???????? FULL LÖSNING ÅÄ = A; Ö = O
+def calc_station(address, zipcode):
     data = json.loads(get_data(address, zipcode))
     lon = float(data[0]['lon'])
     lat = float(data[0]['lat'])
     closest_station = get_close(lon, lat)
-    closest_station_id = closest_station[0]
-    temp = get_temp(int(closest_station_id))
-    closest_station_distance = closest_station[1]
+    return closest_station
 
-    if (closest_station_distance > 3000):
+
+def calc_temp(station_id, distance):
+    # take the temp data from SMHI and apply noice depending and distance
+
+    temp = get_temp(station_id)
+    if (distance > 3000):
         noise = statistics.median(np.random.normal(
-            0, 1, floor(closest_station_distance/10)))
+            0, 1, floor(distance/10)))
     else:
         noise = statistics.median(np.random.normal(0, 0.1, 1000))
     temp = float(temp) + noise
     return temp
 
 
-def calc_electricity_consumption(address, zipcode):
-    temp = calc_temp(address, zipcode)
+def calc_electricity_consumption(temp):
     consumption = statistics.median(np.random.normal(
         0, 1, 100))
     return abs(consumption-temp)
@@ -73,3 +69,6 @@ def send_info_wind(child_conn, address, zipcode):
     data = calc_wind(address, zipcode)
     child_conn.send(data)
     child_conn.close()
+
+
+#print(calc_station("strandvägen 5", "104 40"))
