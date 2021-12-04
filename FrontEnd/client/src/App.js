@@ -1,7 +1,11 @@
+
 import { useEffect, useState} from 'react';
 import './App.css';
 import Axios from 'axios';
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 
+import Login from "./components/Login.js";
+import Register from "./components/Register.js";
 
 
 function App() {
@@ -11,8 +15,9 @@ function App() {
   const[zip, setZip] = useState(0);
   const[password, setPassword] = useState("");
   const[email, setEmail] = useState("");
-  const[loginName, setLoginName] = useState("");
-  const[loginPassword, setLoginPassword] = useState("");
+  //const[loginName, setLoginName] = useState("");
+  //const[loginPassword, setLoginPassword] = useState("");
+  //const[loginStatus, setLoginStatus] = useState("");
 
   const submitRegistration = () => {
     Axios.post("http://localhost:3001/register", {
@@ -25,60 +30,33 @@ function App() {
       alert("Added successfully to Kolfall")
     });
   };
-  const submitLogin = () => {
-    Axios.post("http://localhost:3001/login", {
-      loginName: loginName,
-      loginPassword: loginPassword
-    }).then((response)=> {
-      console.log(response);
-    });
-  }
   //Behöver lägga till/ta bost grejer för nya databasen
   return (
-    <div className="App">
-      <h1> Kolfall </h1>
+    <><div className="App">
+      <Router>
+      <nav className="navbar navbar-expand-lg navbar-light fixed-top">
+        <div className="container">
+              <li className="nav-item">
+                <Link className="nav-link" to={"/sign-in"}>Login</Link>
+              </li>
+              <li className="nav-item">
+                <Link className="nav-link" to={"/sign-up"}>Sign up</Link>
+              </li>
+        </div>
+      </nav>
 
-
-      <div className ="Register">
-        <h2>Register</h2>
-        <label> Name </label>
-      <input type="text" name = "name" onChange={(event)=>{
-        setName(event.target.value)
-      }}/>
-      <label>  Adress </label>
-      <input type="text" name = "adress"onChange={(event)=>{
-        setEmail(event.target.value)
-      }}/>
-      <label> Email </label>
-      <input type="text" name = "email" onChange={(event)=>{
-        setAdress(event.target.value)
-      }}/>
-      <label> Zip </label>
-      <input type="number" name = "zip" onChange={(event)=>{
-        setZip(event.target.value)
-      }}/>
-      <label> Password </label>
-      <input type="password" name = "password" onChange={(event)=>{
-        setPassword(event.target.value)
-      }}/>
-      <label>Prosumer</label>
-      <input type="checkbox" name = "checkbox" />
-      <button onClick ={submitRegistration}> Register</button>
+      <div className="auth-wrapper">
+        <div className="auth-inner">
+          <Routes>
+            <Route exact path='/' element={<Login/>} />
+            <Route path="/sign-in" element={<Login/>} />
+            <Route path="/sign-up" element={<Register/>} />
+          </Routes>
+        </div>
       </div>
-
-
-      <div className = "Login" >
-      <h1>Login</h1>
-      <label> Name </label>
-      <input type="text" name = "loginName" onChange={(event)=>{
-        setLoginName(event.target.value)
-      }}/><label> Password </label>
-      <input type="password" name = "loginPassword" onChange={(event)=>{
-        setLoginPassword(event.target.value)
-      }}/>
-      <button onClick ={submitLogin}> Login</button>
-      </div>
+      </Router>
     </div>
+</>
   );
 }
 
