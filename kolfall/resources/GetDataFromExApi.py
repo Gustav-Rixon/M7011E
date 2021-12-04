@@ -1,5 +1,6 @@
 import requests
 
+
 class get_data_from_station:
     def get_station_data_temp():
         # HOW OFTEN TO UPDATE?????
@@ -10,7 +11,6 @@ class get_data_from_station:
         with open("dataTemp.json", "w") as file:
             file.write(data_outside.text)
 
-
     def get_station_data_wind():
         # HOW OFTEN TO UPDATE?????
         # wind speed in m/s
@@ -19,7 +19,6 @@ class get_data_from_station:
         data_outside.raise_for_status()
         with open("dataWind.json", "w") as file:
             file.write(data_outside.text)
-
 
     def get_station_data():
         # HOW OFTEN TO UPDATE????? THIS ONE NOT SO MUCH
@@ -30,6 +29,6 @@ class get_data_from_station:
         with open("data.json", "w") as file:
             file.write(data_station.text)
 
-    #get_station_data()
-    #get_station_data_wind()
-    #get_station_data_temp()
+    # get_station_data()
+    # get_station_data_wind()
+    # get_station_data_temp()
