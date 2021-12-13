@@ -32,7 +32,7 @@ def get_weather_data_wind(address, zipcode):
 
 if __name__ == "__main__":
     sim = Simulator()
-    sim.setupSim()
+    # sim.setupSim()
     x = threading.Thread(target=sim.run)
     x.start()
     app.run()
