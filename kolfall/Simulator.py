@@ -58,6 +58,10 @@ class Exporter:
 
 
 class Events:
+    # TODO SHOULD HAVE type: GLOBAL EVENT; GRID EVENT; HOUSEHOLD EVENT
+    def __init__(self, type):
+        self.type = type
+
     # event id 0 - Shit got dark pls help
     def lightsOut(grid_id):
         print("LIGHTS OUT")
@@ -136,8 +140,8 @@ class Simulator:
             for power_plant in self._power_plant:
                 current_production += power_plant.production
 
-                if power_plant.buffert.content >= power_plant.buffert.capacity:
-                    power_plant.buffert.content = power_plant.buffert.capacity
+                if power_plant.buffert.content >= power_plant.buffert.capacity:  # OVERFLOWS why?
+                    power_plant.buffert.content = power_plant.buffert.capacity - current_consumption
                 else:
                     power_plant.buffert.content += current_production-current_consumption
 

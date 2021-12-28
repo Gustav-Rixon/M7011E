@@ -8,6 +8,7 @@ from mp1 import send_info_temp, send_info_wind
 from Simulator import Simulator, Exporter
 from flask import Flask, json, jsonify
 from Simulator import global_household_list
+from resources.GetDataFromExApi import get_data_from_station
 
 app = Flask(__name__)
 
@@ -30,7 +31,7 @@ def get_test(address, zipcode):
     print(global_household_list)
     print("##########")
     return response
-    #response = f"Current data for address:{address}, zipcode:{zipcode} WIND {parent_conn.recv()}"
+    # response = f"Current data for address:{address}, zipcode:{zipcode} WIND {parent_conn.recv()}"
     # return jsonify({'address', {address},
     #                'zipcode', "test"})
 
@@ -63,4 +64,15 @@ if __name__ == "__main__":
     # sim.setupSim()
     # x = threading.Thread(target=sim.run)
     # x.start()
+    sim = Simulator()
+    smhi = get_data_from_station()
+    sim.setupSim
+
+    x = threading.Thread(target=sim.run)
+    x.daemon = True
+    x.start()
+    y = threading.Thread(target=smhi.update_data)
+    y.daemon = True
+    y.start()
+    # sim.run()  # Main thred
     app.run()
