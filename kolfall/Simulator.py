@@ -12,7 +12,7 @@ from multiprocessing import Process, Queue, Pipe
 from resources.GetDataFromExApi import get_data_from_station
 
 global_household_list = []
-fastpris = 0
+fastpris = 10
 
 
 class Household:
@@ -82,12 +82,15 @@ class Events:
 class Simulator:
     def __init__(self):
         self._household_list_in_siumulation = []
-        self._power_plant = []
+        self._power_plants = []
         self._event_list = []  # TODO EVENTS? power out turbine explode?
+        self._total_buffert = 0
 
     # TODO:SHOULD GET ALL THE HOUSEHOLDS FROM THE DATABASE AND CREATE HOUSEHOLD OBJECTS
+    # kWh
     def setupSim():
         p1 = PowerPlant(1, 100, None, 1000, 0)
+        p2 = PowerPlant(2, 200, None, 500, 0)
         h1 = Household(1, None, None, None, 97200, 4500, None, None, None)
         h2 = Household(2, None, None, None, 162790, 3000, None, None, None)
         h3 = Household(3, None, None, None, 162790, 100000, None, None, None)
@@ -99,14 +102,19 @@ class Simulator:
         household_list.append(h3)
         household_list.append(h4)
         power_plant_list.append(p1)
+        power_plant_list.append(p2)
         print(household_list)
         return household_list, power_plant_list
 
-    # y = kx+m, k = number of users, x = current consumtion, m = fast pris
-    def calculate_electricity_price(current_consumption):
+    # y = kx+m, k = number of users, x = current consumtion, m = fast pris öre/kWh
+    def calculate_electricity_price(current_consumption, current_buffert):
         global global_household_list
         global fastpris
-        return len(global_household_list)*current_consumption+fastpris
+
+        if ((len(global_household_list)*current_consumption) + fastpris - current_buffert <= fastpris):
+            return fastpris
+        else:
+            return (len(global_household_list)*current_consumption) + fastpris - current_buffert
 
     def run(self):
         self._household_list_in_siumulation, self._power_plant = Simulator.setupSim()
@@ -118,6 +126,9 @@ class Simulator:
             global_household_list = self._household_list_in_siumulation
             current_consumption = 0
             current_production = 0
+            total_current_production = 0
+            buffert_size = 0  # size of the buffert
+            buffert = 0  # amount of power in the buffert
             print("RUNNING")
 
             for event in self._event_list:
@@ -137,27 +148,48 @@ class Simulator:
                       household.temp,  household.consumption, household.power_status)
                 current_consumption += household.consumption
 
+            #############################Powerplant and buffert#######################################
+
+            # I CRY want to calculate what the networks capacity is
             for power_plant in self._power_plant:
-                current_production += power_plant.production
+                buffert_size += power_plant.buffert.capacity
 
-                if power_plant.buffert.content >= power_plant.buffert.capacity:  # OVERFLOWS why?
-                    power_plant.buffert.content = power_plant.buffert.capacity - current_consumption
+            for power_plant in self._power_plant:
+                current_production = power_plant.production
+                total_current_production += power_plant.production
+                power_plant.buffert.content += current_production - \
+                    (current_consumption/len(self._power_plant))
+
+                # enforce buffert limit
+                if power_plant.buffert.content >= buffert_size:
+                    buffert = buffert_size
+                    power_plant.buffert.content = buffert_size
                 else:
-                    power_plant.buffert.content += current_production-current_consumption
+                    buffert += power_plant.buffert.content
 
-                print("#############current_power_plant_buffert#############")
+                print(
+                    f"#############current_power_plant_buffert: for power plant {power_plant.id}#############")
                 print(power_plant.buffert.content)
+
+                if power_plant.buffert.content < 0:  # enforce buffert limit
+                    power_plant.buffert.content = 0
+                    buffert += power_plant.buffert.content  # TEMP? SO IT DOES NOT STACK
+                    print(
+                        f"#############WARNNING for power plant {power_plant.id} insufficient power#############")
+
+            #############################Powerplant and buffert#######################################
 
             print("############current_consumption##############")
             print(current_consumption)
             print("###########################")
-            print(Simulator.calculate_electricity_price(current_consumption))
-            print("#############current_production#############")
-            print(current_production)
+            print(f"buffert is {buffert}")
+            print(Simulator.calculate_electricity_price(
+                current_consumption, buffert))
+            print("#############current_production total#############")
+            print(total_current_production)
             print("#############current_net#############")
-            print(current_production-current_consumption)
-
-            sleep(10)
+            print(total_current_production-current_consumption)
+            sleep(1)
 
         # On Windows the subprocesses will import (i.e. execute) the main module at start. You need to insert an if __name__ == '__main__': guard in the main module to avoid creating subprocesses
         # set_temp(0,"Strandv%C3%A4gen%205", "104%2040")
@@ -169,7 +201,7 @@ if __name__ == "__main__":
     sim.setupSim
 
     # x = threading.Thread(target=sim.run)
-    #x.daemon = True
+    # x.daemon = True
     # x.start()
     y = threading.Thread(target=smhi.update_data)
     y.daemon = True
