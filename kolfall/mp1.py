@@ -45,10 +45,11 @@ def calc_temp(station_id, distance):
     return temp
 
 
+# https://www.energimarknadsbyran.se/el/dina-avtal-och-kostnader/elkostnader/elforbrukning/normal-elforbrukning-och-elkostnad-for-villa/
 def calc_electricity_consumption(temp):
     consumption = statistics.median(np.random.normal(
         0, 1, 100))
-    return abs(consumption-temp)
+    return 50 + abs(consumption-temp)
 
 
 def calc_production(prosumer, address, zipcode):
