@@ -59,14 +59,14 @@ def calc_production(prosumer, address, zipcode):
 
 
 # ISSU returns the same value?
-def send_info_temp(child_conn, address, zipcode):
-    data = calc_temp(address, zipcode)
+def send_info_temp(child_conn, closest_station_id, closest_station_distance):
+    data = calc_temp(closest_station_id, closest_station_distance)
     child_conn.send(data)
     child_conn.close()
 
 
-def send_info_wind(child_conn, address, zipcode):
-    data = calc_wind(address, zipcode)
+def send_info_wind(child_conn, closest_station_id, closest_station_distance):
+    data = calc_wind(97200, 4500)
     child_conn.send(data)
     child_conn.close()
 
