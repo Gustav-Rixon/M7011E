@@ -1,7 +1,10 @@
+from time import sleep
 import requests
+from resources.Rate_limited import rate_limited
 
 
 class get_data_from_station:
+    @rate_limited(1/10, mode='kill')
     def get_station_data_temp():
         # HOW OFTEN TO UPDATE?????
         # Outside tempature in Celsius
@@ -11,6 +14,7 @@ class get_data_from_station:
         with open("dataTemp.json", "w") as file:
             file.write(data_outside.text)
 
+    @rate_limited(1/10, mode='kill')
     def get_station_data_wind():
         # HOW OFTEN TO UPDATE?????
         # wind speed in m/s
@@ -20,6 +24,7 @@ class get_data_from_station:
         with open("dataWind.json", "w") as file:
             file.write(data_outside.text)
 
+    @rate_limited(1/10, mode='kill')
     def get_station_data():
         # HOW OFTEN TO UPDATE????? THIS ONE NOT SO MUCH
         # Get station information without values
@@ -29,6 +34,10 @@ class get_data_from_station:
         with open("data.json", "w") as file:
             file.write(data_station.text)
 
-    # get_station_data()
-    # get_station_data_wind()
-    # get_station_data_temp()
+    def update_data(self):
+        while True:
+            print("UPDATING SMHI DATA")
+            get_data_from_station.get_station_data()
+            get_data_from_station.get_station_data_wind()
+            get_data_from_station.get_station_data_temp()
+            sleep(60*60*24)

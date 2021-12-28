@@ -1,6 +1,7 @@
 from multiprocessing import Process, Queue, Pipe
 from multiprocessing.process import current_process
 import threading
+import signal
 from time import sleep
 from mp1 import send_info_wind, send_info_temp
 from resources.Rate_limited import rate_limited
@@ -8,6 +9,7 @@ import json
 from mp1 import calc_station, calc_temp, calc_wind, calc_electricity_consumption
 from werkzeug.wrappers import Request, Response
 from multiprocessing import Process, Queue, Pipe
+from resources.GetDataFromExApi import get_data_from_station
 
 global_household_list = []
 fastpris = 0
@@ -159,7 +161,13 @@ class Simulator:
 
 if __name__ == "__main__":
     sim = Simulator()
+    smhi = get_data_from_station()
     sim.setupSim
-    # x = threading.Thread(target=sim.run) #enojing to tesy eith threding on
+
+    # x = threading.Thread(target=sim.run)
+    #x.daemon = True
     # x.start()
-    sim.run()
+    y = threading.Thread(target=smhi.update_data)
+    y.daemon = True
+    y.start()
+    sim.run()  # Main thred
