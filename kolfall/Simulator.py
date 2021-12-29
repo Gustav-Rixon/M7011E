@@ -10,51 +10,15 @@ from mp1 import calc_station, calc_temp, calc_wind, calc_electricity_consumption
 from werkzeug.wrappers import Request, Response
 from multiprocessing import Process, Queue, Pipe
 from resources.GetDataFromExApi import get_data_from_station
+from Lorax import create_house_holds_objects, create_power_plants_objects
+from flask import Flask, json, jsonify
 
 global_household_list = []
+global_power_plant_list = []
+global_event_list = []
 fastpris = 10
 
-
-class Household:
-    # closest station id fungera som grid? => grid offline no power
-    def __init__(self, id, wind, temp, consumption, closest_station_id, closest_station_distance, power_status, turbine_status, production):
-        self.id = id
-        self.wind = wind
-        self.temp = temp
-        self.consumption = consumption
-        self.closest_station_id = closest_station_id
-        self.closest_station_distance = closest_station_distance
-        self.power_status = power_status
-
-
-class PowerPlant:
-    def __init__(self, id, production, status, buffert_capacity, buffert_content):
-        self.id = id
-        self.production = production
-        self.status = status
-        self.buffert = Buffert(buffert_capacity, buffert_content)
-
-
-class Buffert:
-    def __init__(self, capacity, content):
-        self.capacity = capacity
-        self.content = content
-
-    # Sadly you cant have more content then capacity
-    def buffert_checker(self):
-        if self.content > self.capacity:
-            return self.capacity
-
-
-class Exporter:
-    def households(household_list):
-        _household_list = household_list
-
-    def export(child_conn):
-        household_list = Simulator._household_list_in_siumulation
-        # Simulator.export()
-        child_conn.send(household_list)
-        child_conn.close()
+app = Flask(__name__)
 
 
 class Events:
@@ -78,6 +42,14 @@ class Events:
             if household.closest_station_id == grid_id:
                 household.power_status = 1
 
+    # event id 2 - Change power plant prod
+    def change_production(id, order):
+        global global_power_plant_list
+        print("Burning more hamsters!!!!")
+        for power_plant in global_power_plant_list:
+            if power_plant.id == id:
+                power_plant.production = order
+
 
 class Simulator:
     def __init__(self):
@@ -89,21 +61,8 @@ class Simulator:
     # TODO:SHOULD GET ALL THE HOUSEHOLDS FROM THE DATABASE AND CREATE HOUSEHOLD OBJECTS
     # kWh
     def setupSim():
-        p1 = PowerPlant(1, 100, None, 1000, 0)
-        p2 = PowerPlant(2, 200, None, 500, 0)
-        h1 = Household(1, None, None, None, 97200, 4500, None, None, None)
-        h2 = Household(2, None, None, None, 162790, 3000, None, None, None)
-        h3 = Household(3, None, None, None, 162790, 100000, None, None, None)
-        h4 = Household(4, None, None, None, 97200, 4500, None, None, None)
-        household_list = []
-        power_plant_list = []
-        household_list.append(h1)
-        household_list.append(h2)
-        household_list.append(h3)
-        household_list.append(h4)
-        power_plant_list.append(p1)
-        power_plant_list.append(p2)
-        print(household_list)
+        household_list = create_house_holds_objects()
+        power_plant_list = create_power_plants_objects()
         return household_list, power_plant_list
 
     # y = kx+m, k = number of users, x = current consumtion, m = fast pris öre/kWh
@@ -118,23 +77,29 @@ class Simulator:
 
     def run(self):
         self._household_list_in_siumulation, self._power_plant = Simulator.setupSim()
-        self._event_list.append(Events.lightsOut)
-        self._event_list.append(Events.lightsOn)
+        # self._event_list.append(Events.lightsOut)
+        # self._event_list.append(Events.lightsOn)
+
+        global global_household_list
+        global global_power_plant_list
+        global global_event_list
+        global_household_list = self._household_list_in_siumulation
+        global_power_plant_list = self._power_plant
+
+        # global_event_list.append(Events.change_production)
 
         while True:
-            global global_household_list
-            global_household_list = self._household_list_in_siumulation
             current_consumption = 0
             current_production = 0
             total_current_production = 0
-            buffert_size = 0  # size of the buffert
-            buffert = 0  # amount of power in the buffert
+
             print("RUNNING")
 
-            for event in self._event_list:
-                if len(self._event_list) > 0:
-                    event(97200)
-                    self._event_list.pop(0)
+            # TODO HAVE A LIST OR INSTAND ACTION
+            # for event in global_event_list:
+            #    if len(global_event_list) > 0:
+            #        event()  # pre defined varibels pls
+            #        global_event_list.pop(0)
 
             for household in self._household_list_in_siumulation:
                 household.wind = calc_wind(
@@ -152,41 +117,22 @@ class Simulator:
 
             # I CRY want to calculate what the networks capacity is
             for power_plant in self._power_plant:
-                buffert_size += power_plant.buffert.capacity
 
-            for power_plant in self._power_plant:
-                current_production = power_plant.production
-                total_current_production += power_plant.production
-                power_plant.buffert.content += current_production - \
-                    (current_consumption/len(self._power_plant))
-
-                # enforce buffert limit
-                if power_plant.buffert.content >= buffert_size:
-                    buffert = buffert_size
-                    power_plant.buffert.content = buffert_size
-                else:
-                    buffert += power_plant.buffert.content
-
-                print(
-                    f"#############current_power_plant_buffert: for power plant {power_plant.id}#############")
+                print("#############current_production from reactor #############")
+                print(power_plant.production)
+                print("#############current_buffert in reactor #############")
                 print(power_plant.buffert.content)
 
-                if power_plant.buffert.content < 0:  # enforce buffert limit
-                    power_plant.buffert.content = 0
-                    buffert += power_plant.buffert.content  # TEMP? SO IT DOES NOT STACK
-                    print(
-                        f"#############WARNNING for power plant {power_plant.id} insufficient power#############")
-
-            #############################Powerplant and buffert#######################################
+                #############################Powerplant and buffert#######################################
 
             print("############current_consumption##############")
             print(current_consumption)
             print("###########################")
-            print(f"buffert is {buffert}")
+            print(f"buffert is {self._total_buffert}")
             print(Simulator.calculate_electricity_price(
-                current_consumption, buffert))
+                current_consumption, self._total_buffert))
             print("#############current_production total#############")
-            print(total_current_production)
+            print(power_plant.production)
             print("#############current_net#############")
             print(total_current_production-current_consumption)
             sleep(1)
@@ -195,15 +141,33 @@ class Simulator:
         # set_temp(0,"Strandv%C3%A4gen%205", "104%2040")
 
 
+class API_ENDPOINTS:
+    @app.route('/DATA/house_hold/consumption/house_hold=<int:id>', methods=['GET'])
+    def get_house_hold_consumption(id):
+        global global_household_list
+
+        for house_hold in global_household_list:
+            if house_hold.id == id:
+                return str(house_hold.consumption)
+            else:
+                return "do not finns"
+
+    # ONLY WORKS FOR ONE EVENT
+    @app.route('/admin/tools/change_power/id=<int:id>&power=<int:power>', methods=['POST'])
+    @rate_limited(1/10, mode='kill')
+    def change_power(id, power):
+        Events.change_production(id, power)
+        return f"burning {power} hamsters insted"
+
+
 if __name__ == "__main__":
     sim = Simulator()
-    smhi = get_data_from_station()
-    sim.setupSim
+    #smhi = get_data_from_station()
 
-    # x = threading.Thread(target=sim.run)
-    # x.daemon = True
-    # x.start()
-    y = threading.Thread(target=smhi.update_data)
-    y.daemon = True
-    y.start()
-    sim.run()  # Main thred
+    x = threading.Thread(target=sim.run)
+    x.daemon = True
+    x.start()
+    #y = threading.Thread(target=smhi.update_data)
+    #y.daemon = True
+    # y.start()
+    app.run()  # Main thred

@@ -49,7 +49,7 @@ def calc_temp(station_id, distance):
 def calc_electricity_consumption(temp):
     consumption = statistics.median(np.random.normal(
         0, 1, 100))
-    return 50 + abs(consumption-temp)
+    return 50 + (consumption-temp)
 
 
 def calc_production(prosumer, address, zipcode):
