@@ -52,11 +52,9 @@ def calc_electricity_consumption(temp):
     return 50 + (consumption-temp)
 
 
-def calc_production(prosumer, address, zipcode):
-    if(prosumer == True):
-        return calc_wind(address, zipcode)/2
-    else:
-        return 0
+# TODO DO MATH
+def calc_production(wind):
+    return wind
 
 
 # ISSU returns the same value?
