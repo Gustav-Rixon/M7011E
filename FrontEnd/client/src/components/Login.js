@@ -1,4 +1,4 @@
-import React, { Component, useState} from "react";
+import React, {useState} from "react";
 import Axios from 'axios';
 
 function Login() {
@@ -13,7 +13,7 @@ function Login() {
               if(response.data.message){
                 setLoginStatus(response.data.message)
               }else{
-                setLoginStatus(response.data[0].name)
+                setLoginStatus(response.data)
               }
             });
         }
