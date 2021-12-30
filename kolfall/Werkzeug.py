@@ -1,47 +1,51 @@
-# TODO use WERKZEUG :(
-import logging
-import threading
-import time
-from multiprocessing import Process, Queue, Pipe
-from flask.app import Flask
-from mp1 import send_info_temp, send_info_wind
-from Simulator import Simulator
-from flask import Flask, json, jsonify
-from Simulator import global_household_list
-from resources.GetDataFromExApi import get_data_from_station
+from flask.wrappers import Request
+from werkzeug.exceptions import HTTPException
+from werkzeug.routing import Map, Rule, NotFound, RequestRedirect
+from werkzeug.serving import run_simple
+from werkzeug.wrappers import Response
 
-app = Flask(__name__)
-
-# EXAMPLE REQUEST http://127.0.0.1:5000/DATA/wind/street=Strandv%C3%A4gen%205&postalcode=104%2040
-# TODO ASK DATABASE FOR INFORMATION ABOUT CLOSEST STATION ID AND DISTANCE
-# WORKS IF MOVED TO Simulator.py
-
-
-@app.route('/DATA/wind/street=<string:address>&postalcode=<string:zipcode>', methods=['GET'])
-def get_test(address, zipcode):
-    global global_household_list
-    parent_conn, child_conn = Pipe()
-    p = Process(target=send_info_wind, args=(child_conn, address, zipcode, ))
-    p.start()
-    response = app.response_class(
-        response=json.dumps(parent_conn.recv()),
-        status=200,
-        mimetype='application/json'
-    )
-    print("##########")
-    print(global_household_list)
-    print("##########")
-    return response
-    # response = f"Current data for address:{address}, zipcode:{zipcode} WIND {parent_conn.recv()}"
-    # return jsonify({'address', {address},
-    #                'zipcode', "test"})
+import os
+import redis
+from werkzeug.urls import url_parse
+from werkzeug.wrappers import Request, Response
+from werkzeug.routing import Map, Rule
+from werkzeug.exceptions import HTTPException, NotFound
+from werkzeug.middleware.shared_data import SharedDataMiddleware
+from werkzeug.utils import redirect
+from jinja2 import Environment, FileSystemLoader
+from werkzeug.routing import Map, Rule, NotFound, RequestRedirect
+from werkzeug.wsgi import responder
 
 
-if __name__ == "__main__":
-    # sim = Simulator()
-    # sim.setupSim()
-    # x = threading.Thread(target=sim.run)
-    # x.start()
-    # sim.run()  # Main thred
+url_map = Map([
+    Rule('/index', endpoint='index'),
+    Rule('/test', endpoint='index'),
+])
 
-    app.run()
+
+def on_index(request):
+    return Response('Hello from the index')
+
+
+def on_test(request):
+    print(1+1)
+    return Response('Hello from the index')
+
+
+views = {'index': on_index,
+         'test': on_test}
+
+
+@responder
+def application(environ, start_response):
+    request = Request(environ)
+    urls = url_map.bind_to_environ(environ)
+    return urls.dispatch(lambda e, v: views[e](request, **v),
+                         catch_http_exceptions=True)
+
+
+if __name__ == '__main__':
+    from werkzeug.serving import run_simple
+    #app = create_app()
+    run_simple('127.0.0.1', 5000, application,
+               use_debugger=True, use_reloader=True)
