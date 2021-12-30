@@ -99,21 +99,25 @@ class Simulator:
             prosumer._wind = calc_wind(
                 prosumer._closest_station_id, prosumer._closest_station_distance)
             prosumer._production = calc_production(
-                prosumer._wind)*prosumer._ratio_to_market
-            prosumer._buffert.content += prosumer._production * \
-                (1-prosumer._ratio_to_market)
+                prosumer._wind)
             prosumer._temp = calc_temp(
                 prosumer._closest_station_id, prosumer._closest_station_distance)
             prosumer._consumption = calc_electricity_consumption(
                 prosumer._temp)
 
-            if prosumer._buffert.content < prosumer._consumption:
-                prosumer._consumption -= prosumer._buffert.content
-                prosumer._buffert.content = 0
+            if prosumer._production > prosumer._consumption:  # Only send to buffert when condison is meet
+                # TODO In case of excessive production, Prosumer should be able to control the ratio of how much should be sold to the market and how much should be sent to the buffer
+                prosumer._buffert.content += (prosumer._production -
+                                              prosumer._consumption)*prosumer._ratio_to_market
+                global_market.market_buffert.content = (prosumer._production -
+                                                        prosumer._consumption)*(1-prosumer._ratio_to_market)
 
-            if prosumer._buffert.content > prosumer._consumption:
-                prosumer._buffert.content -= prosumer._consumption
-                prosumer._consumption = 0
+            if prosumer._consumption > prosumer._production:  # TODO REMOVE UNDERSKOTT FRÅN BUFFERT
+                prosumer._buffert.content -= abs(prosumer._production -
+                                                 prosumer._consumption)
+
+            if prosumer._buffert.content < 0:  # cant have 0 power
+                prosumer._buffert.content = 0
 
             total_prosumer_consumption += prosumer._consumption
             total_prosumer_production += prosumer._production
@@ -178,7 +182,7 @@ class Simulator:
             for object in self._prosumer_households_in_siumulation:
                 object.power_check()
                 print(
-                    f"PROSUMER id:{object._id} status:{object._power_status} buffert:{object._buffert.content} consumption:{object._consumption}")
+                    f"PROSUMER id:{object._id} status:{object._power_status} buffert:{object._buffert.content} consumption:{object._consumption} production:{object._production}")
 
             #################################################
 

@@ -54,7 +54,7 @@ def calc_electricity_consumption(temp):
 
 # TODO DO MATH
 def calc_production(wind):
-    return wind
+    return wind * 10000
 
 
 # ISSU returns the same value?
