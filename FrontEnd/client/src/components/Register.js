@@ -1,6 +1,6 @@
-import React, {useState} from "react";
+import React, { useState} from "react";
 import Axios from 'axios';
-
+Axios.defaults.withCredentials = false;
 
 function clean(value){
   value = value.toLowerCase();
@@ -16,38 +16,36 @@ function Register() {
     const[zip, setZip] = useState("");
     const[password, setPassword] = useState("");
     const[email, setEmail] = useState("");
-    const[loginStatus, setLoginStatus] = useState("");
+    const[loginStatus, setLoginStatus] = useState(false);
     const[prosumer, setProsumer] = useState('0');
     const submitRegistration = () => {
-      const link =  'https://nominatim.openstreetmap.org/search.php?street='+address+ '&postalcode='+zip+ '&format=json'
-      Axios.get(link).then(resp => {
-        const exists = resp.data.length
-        //TODO fixa om tid finns Skriv if sats för alla steg
-        if(exists > 0 && name !== "" && email.includes("@",".") && zip !==0 && password !==""){
-          try {
-            Axios.post("http://localhost:3001/register", {
-              name: name,
-              address: address, 
-              zip: zip, 
-              password:password,
-              email:email,
-              prosumer:prosumer
-            }).then((response)=> {
-              if(response.data.message){
-                setLoginStatus(response.data.message)
-              }else{
-                setLoginStatus(response.data[0].name)
-              }
-            }).catch(error => console.log(error));
-          } catch (error) {
-            setLoginStatus("An error has occured")
+      console.log("i tried")
+        Axios.get('https://nominatim.openstreetmap.org/search.php?street='+address+ '&postalcode='+zip+ '&format=json').then(resp => {
+       
+          const exists = resp.data.length
+          //TODO fixa om tid finns Skriv if sats för alla steg
+          if(exists > 0 && name !== "" && email.includes("@",".") && zip !==0 && password !==""){
+            try {
+              Axios.post("http://localhost:3001/register", {
+                name: name,
+                address: address, 
+                zip: zip, 
+                password:password,
+                email:email,
+                prosumer:prosumer
+              }).then((response)=> {
+                if(response.data.message){
+                  setLoginStatus(false)
+                }else{
+                  setLoginStatus(true)
+                }
+              }).catch(error => console.log(error));
+            } catch (error) {
+              setLoginStatus(false)
+            }
           }
-        }
-        setLoginStatus("Something whent wrong with your registration. Please follow the guidelines and try again")
-    });
-
-        //console.log(resp)
-
+          setLoginStatus(false)
+      }); 
     };
     return (
         <div className="Register">    
