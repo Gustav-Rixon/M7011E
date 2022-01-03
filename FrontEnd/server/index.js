@@ -1,4 +1,6 @@
 const express = require('express');
+const Axios =require( 'axios');
+Axios.defaults.withCredentials = true;
 const app = express();
 const mysql = require('mysql');
 const cors = require('cors');
@@ -9,32 +11,13 @@ const session = require('express-session')
 const saltRounds = 10;
 const jwt = require("jsonwebtoken");
 app.use(express.json());
-var whitelist = ['http://localhost:3000', "http://nominatim.openstreetmap.org/"];
-app.use((req, res, next) => {
-    const corsWhitelist = [
-        'http://localhost:3000',
-        'https://nominatim.openstreetmap.org/',
-        'https://domain3.example'
-    ];
-    if (corsWhitelist.indexOf(req.headers.origin) !== -1) {
-        res.header('Access-Control-Allow-Origin', req.headers.origin);
-        res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-    }
+var whitelist = ['http://localhost:3000', "http://nominatim.openstreetmap.org"];
 
-    next();
-});
+app.use(cors({
+    origin: ['http://localhost:3000', "http://nominatim.openstreetmap.org"],
+    credentials: true
 
-var corsOptions = {
-  credentials: true,
-  origin: function(origin, callback) {
-    if (whitelist.indexOf(origin) !== -1) {
-      callback(null, true)
-    } else {
-      callback(new Error('Not allowed by CORS'))
-    }
-  }
-}
-app.use(cors(corsOptions));
+}));
 app.use(cors());
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({extended: true}));
@@ -82,8 +65,15 @@ app.get('/Authenticated', verifyJWT, (req,res) => {
 
 //TODO fixa så att vägen finns innan det läggs in i table. kalla på rixons backend function om inget returnar så invalid input
 app.post("/register",  async (req, res)=>{
-    const {name,zip,address,password,email,prosumer} =req.body
-    //console.log(prosumer)
+    const {name,zip,address,password,email,prosumer} =req.body;
+    var exists;
+   // console.log(Axios.get('http://nominatim.openstreetmap.org/search.php?street='+address+ '&postalcode='+zip+ '&format=json'))
+    await Axios.get('http://nominatim.openstreetmap.org/search.php?street='+address+ '&postalcode='+zip+ '&format=json').then(resp => {
+                console.log(resp)
+                exists = resp.data.length;
+                console.log (exists)
+            })
+    
     //TODO fixa querry för ny databas
     //const sqlInsert = "INSERT INTO user (name, email, adress, zip, password) VALUES (?,?,?,?,?)";
     console.log("was here")
@@ -103,17 +93,23 @@ app.post("/register",  async (req, res)=>{
                 if (err){
                     console.log(err)
                 }
-        
-                db.query("INSERT INTO user (user_name, password, email, address, zipcode, prosumer) VALUES (?,?,?,?,?,?)", 
-                [name, hash, email, address, zip, prosumer], 
-                (err, result)=> {
-                    if(err) {
-                        console.log(err);
-                    }else{
-                       console.log("hi") //res.json("USER REGISTERED");
+                if(exists>0){
+                    db.query("INSERT INTO user (user_name, password, email, address, zipcode, prosumer) VALUES (?,?,?,?,?,?)", 
+                    [name, hash, email, address, zip, prosumer], 
+                    (err, result)=> {
+                        if(err) {
+                            console.log(err);
+                        }else{
+                           console.log("hi") //res.json("USER REGISTERED");
+                        }
                     }
+                    );
                 }
-                );
+                else{
+                    console.log("address faulty")
+
+                }
+                
             });
          }
     });

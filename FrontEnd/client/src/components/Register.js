@@ -1,6 +1,6 @@
 import React, { useState} from "react";
 import Axios from 'axios';
-Axios.defaults.withCredentials = false;
+Axios.defaults.withCredentials = true;
 
 function clean(value){
   value = value.toLowerCase();
@@ -19,12 +19,8 @@ function Register() {
     const[loginStatus, setLoginStatus] = useState(false);
     const[prosumer, setProsumer] = useState('0');
     const submitRegistration = () => {
-      console.log("i tried")
-        Axios.get('https://nominatim.openstreetmap.org/search.php?street='+address+ '&postalcode='+zip+ '&format=json').then(resp => {
-       
-          const exists = resp.data.length
           //TODO fixa om tid finns Skriv if sats för alla steg
-          if(exists > 0 && name !== "" && email.includes("@",".") && zip !==0 && password !==""){
+          if(name !== "" && email.includes("@",".") && zip !==0 && password !==""){
             try {
               Axios.post("http://localhost:3001/register", {
                 name: name,
@@ -44,8 +40,8 @@ function Register() {
               setLoginStatus(false)
             }
           }
-          setLoginStatus(false)
-      }); 
+          setLoginStatus(false); 
+          console.log("Faulty inputs")
     };
     return (
         <div className="Register">    
@@ -78,7 +74,7 @@ function Register() {
         }
         } />
         <button onClick={submitRegistration}> Register</button>
-        <h1>{loginStatus}</h1>
+        <h1>{toString(loginStatus)}</h1>
       </div>
     );
 }
