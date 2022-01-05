@@ -1,5 +1,6 @@
 import mysql.connector
 from mysql.connector import Error
+from werkzeug.wrappers.response import Response
 
 
 class Consumer:
@@ -20,7 +21,7 @@ class Prosumer(Consumer):
         self._turbine_status = turbine_status
         self._production = 0
         self._ratio_to_market = 0.5  # Determents how much is sent to the market default is 50%
-        self._buffert = Buffert(1000, 0)
+        self._buffert = Buffert(1000, 0)  # TODO
 
     def power_check(self):
         self._buffert.buffert_checker()
@@ -114,3 +115,165 @@ def create_power_plants_objects():
     myconn.close()
 
     return list
+
+
+def checktest(consumer_households_in_siumulation, prosumer_households_in_siumulation):
+    """[Checks if a new user needs to be added to the simulation or if a user is removed]
+
+    Args:
+        current_list ([list]): [a list of all the current households in the simulation]
+
+    Returns:
+        [type]: [description]
+    """
+    count = 0
+    check = len(consumer_households_in_siumulation +
+                prosumer_households_in_siumulation)
+    try:
+        connection = mysql.connector.connect(host='localhost',
+                                             database='m7011e',
+                                             user='root',
+                                             password='')
+        sql_select_Query = "select * from house_hold"
+        # MySQLCursorDict creates a cursor that returns rows as dictionaries
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute(sql_select_Query)
+        records = cursor.fetchall()
+
+        for row in records:
+            count += 1
+
+        if count == check:
+            print("¤¤¤¤¤¤¤¤¤¤¤¤¤¤__NO__CHANGE__¤¤¤¤¤¤¤¤¤¤¤¤¤¤")
+            pass
+
+        if count > check:
+            print("¤¤¤¤¤¤¤¤¤¤¤¤¤¤__CHANGE__ADDING__USER__¤¤¤¤¤¤¤¤¤¤¤¤¤¤")
+            consumer_households_in_siumulation, prosumer_households_in_siumulation = add_new_user(
+                consumer_households_in_siumulation, prosumer_households_in_siumulation)
+
+        if count < check:
+            print("¤¤¤¤¤¤¤¤¤¤¤¤¤¤__CHANGE__REMOVING__USER__¤¤¤¤¤¤¤¤¤¤¤¤¤¤")
+            consumer_households_in_siumulation, prosumer_households_in_siumulation = remove_user(
+                consumer_households_in_siumulation, prosumer_households_in_siumulation)
+
+    except Error as e:
+        print("Error reading data from MySQL table", e)
+    finally:
+        if connection.is_connected():
+            connection.close()
+            cursor.close()
+            return consumer_households_in_siumulation, prosumer_households_in_siumulation
+
+
+def add_new_user(consumer_households_in_siumulation, prosumer_households_in_siumulation):
+    list3 = consumer_households_in_siumulation + prosumer_households_in_siumulation
+    try:
+        connection = mysql.connector.connect(host='localhost',
+                                             database='m7011e',
+                                             user='root',
+                                             password='')
+        sql_select_Query = "select * from house_hold"
+        # MySQLCursorDict creates a cursor that returns rows as dictionaries
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute(sql_select_Query)
+        records = cursor.fetchall()
+
+        for row in records:
+            closest_station_id = row["closest_station_id"]
+            user_user_id = row["user_user_id"]
+            distans_to_station = row["distans_to_station"]
+            prosumer = row["prosumer"]
+
+            if search_global_list(user_user_id, list3) == False:
+                if prosumer == 0:
+                    consumer_households_in_siumulation.append(Consumer(user_user_id, 0, closest_station_id,
+                                                                       distans_to_station, 0))
+                elif prosumer == 1:
+                    prosumer_households_in_siumulation.append(Prosumer(user_user_id, 0, closest_station_id,
+                                                                       distans_to_station, 0, 0))
+
+    except Error as e:
+        print("Error reading data from MySQL table", e)
+    finally:
+        if connection.is_connected():
+            connection.close()
+            cursor.close()
+            return consumer_households_in_siumulation, prosumer_households_in_siumulation
+
+
+def remove_user(consumer_households_in_siumulation, prosumer_households_in_siumulation):
+    list3 = consumer_households_in_siumulation + prosumer_households_in_siumulation
+    counter = 0
+    try:
+        connection = mysql.connector.connect(host='localhost',
+                                             database='m7011e',
+                                             user='root',
+                                             password='')
+        sql_select_Query = "select * from house_hold"
+        # MySQLCursorDict creates a cursor that returns rows as dictionaries
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute(sql_select_Query)
+        records = cursor.fetchall()
+
+        for row in records:
+            user_user_id = row["user_user_id"]
+            prosumer = row["prosumer"]
+
+            if search_global_list(user_user_id, list3) == False:
+                if prosumer == 0:
+                    consumer_households_in_siumulation.pop(counter)
+                elif prosumer == 1:
+                    prosumer_households_in_siumulation.pop(counter)
+            counter += 1
+
+    except Error as e:
+        print("Error reading data from MySQL table", e)
+    finally:
+        if connection.is_connected():
+            connection.close()
+            cursor.close()
+            return consumer_households_in_siumulation, prosumer_households_in_siumulation
+
+# TODO SOLV ERROR MASSAGE
+
+
+def register(request, **data):
+    try:
+        connection = mysql.connector.connect(host='localhost',
+                                             database='m7011e',
+                                             user='root',
+                                             password='')
+
+        # MySQLCursorDict creates a cursor that returns rows as dictionaries
+        cursor = connection.cursor(prepared=True)
+
+        sql = """INSERT INTO user (user_name, password, email, address, zipcode, prosumer) VALUES (%s, %s, %s, %s, %s, %s)"""
+        val = (data.get("username"), data.get("password"), data.get(
+            "email"), data.get("address"), data.get("zipcode"), data.get("prosumer"))
+        cursor.execute(sql, val)
+        connection.commit()
+
+    except Error as e:
+        print("parameterized query failed {}".format(e))
+    finally:
+        if connection.is_connected():
+            connection.close()
+            cursor.close()
+            return Response(f"{cursor.rowcount} record inserted.")
+
+
+def search_global_list(id, list):
+    """[Checks if object id is in list]
+
+    Args:
+        id ([int]): [id to search for]
+        list ([list]): [list of objects to search through]
+
+    Returns:
+        [Boolean]: [True if found, false if not found]
+    """
+    for object in list:
+        if object._id == id:
+            return True
+    return False

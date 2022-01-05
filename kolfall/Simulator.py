@@ -10,7 +10,7 @@ from mp1 import calc_station, calc_temp, calc_wind, calc_electricity_consumption
 from werkzeug.wrappers import Request, Response
 from multiprocessing import Process, Queue, Pipe
 from resources.GetDataFromExApi import get_data_from_station
-from Lorax import create_house_holds_objects, create_power_plants_objects
+from Lorax import create_house_holds_objects, create_power_plants_objects, checktest, register
 from Market import Market
 ####################################
 import os
@@ -71,6 +71,17 @@ class Events:
 
     # event id 4 - blackout
     def remove_blackout():
+        global global_household_list
+        for household in global_household_list:
+            household._power_status = 1
+
+    # event id 5
+    def remove_participant_from_simulation():
+        global global_household_list
+        for household in global_household_list:
+            household._power_status = 1
+
+    def remove_participant():
         global global_household_list
         for household in global_household_list:
             household._power_status = 1
@@ -158,8 +169,12 @@ class Simulator:
         # global_event_list.append(Events.change_production)
 
         while True:
-            print("RUNNING")
 
+            print("RUNNING")
+            # self._consumer_households_in_siumulation, self._prosumer_households_in_siumulation = checktest(self._consumer_households_in_siumulation,
+            #                                                                                               self._prosumer_households_in_siumulation)
+            # global_household_list = self._consumer_households_in_siumulation + \
+            #    self._prosumer_households_in_siumulation
             # TODO HAVE A LIST OR INSTAND ACTION
             # for event in global_event_list:
             #    if len(global_event_list) > 0:
@@ -214,6 +229,7 @@ class Simulator:
 
 
 # TODO MAKE METHODS ONYL RESPOND IF CORRECT GET/POST IS USED
+# TODO ADD TOKEN FROM FRONTEND
 class SimulatorEndPoints:
 
     @rate_limited(1/10, mode='kill')
@@ -267,14 +283,18 @@ class SimulatorEndPoints:
             Rule('/admin/tools/change_market_size/size=<int:size>',
                  endpoint="change_market_size"),
             Rule('/DATA/house_hold/consumption/house_hold=<int:id>',
-                 endpoint='get_house_hold_consumption')
+                 endpoint='get_house_hold_consumption'),
+            Rule(
+                '/register/username=<string:username>&password=<string:password>&email=<string:email>&address=<string:address>&zipcode=<string:zipcode>&prosumer=<int:prosumer>', endpoint='register'),
+            Rule('/login/username=<string:username>', endpoint='login')
         ])
 
         views = {'change_power': SimulatorEndPoints.on_change_power_plant_output,
                  'buy': SimulatorEndPoints.buy,
                  'sell': SimulatorEndPoints.sell,
                  'change_market_size': SimulatorEndPoints.change_market_size,
-                 'get_house_hold_consumption': SimulatorEndPoints.get_house_hold_consumption}
+                 'get_house_hold_consumption': SimulatorEndPoints.get_house_hold_consumption,
+                 'register': register}
 
         request = Request(environ)
         urls = url_map.bind_to_environ(environ)
