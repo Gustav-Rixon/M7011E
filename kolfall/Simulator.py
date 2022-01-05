@@ -10,7 +10,7 @@ from mp1 import calc_station, calc_temp, calc_wind, calc_electricity_consumption
 from werkzeug.wrappers import Request, Response
 from multiprocessing import Process, Queue, Pipe
 from resources.GetDataFromExApi import get_data_from_station
-from Lorax import create_house_holds_objects, create_power_plants_objects, checktest, register
+from Lorax import create_house_holds_objects, create_power_plants_objects, checktest, register, login
 from Market import Market
 ####################################
 import os
@@ -294,7 +294,8 @@ class SimulatorEndPoints:
                  'sell': SimulatorEndPoints.sell,
                  'change_market_size': SimulatorEndPoints.change_market_size,
                  'get_house_hold_consumption': SimulatorEndPoints.get_house_hold_consumption,
-                 'register': register}
+                 'register': register,
+                 'login': login}
 
         request = Request(environ)
         urls = url_map.bind_to_environ(environ)

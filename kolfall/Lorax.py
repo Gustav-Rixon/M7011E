@@ -235,9 +235,8 @@ def remove_user(consumer_households_in_siumulation, prosumer_households_in_siumu
             cursor.close()
             return consumer_households_in_siumulation, prosumer_households_in_siumulation
 
+
 # TODO SOLV ERROR MASSAGE
-
-
 def register(request, **data):
     try:
         connection = mysql.connector.connect(host='localhost',
@@ -261,6 +260,30 @@ def register(request, **data):
             connection.close()
             cursor.close()
             return Response(f"{cursor.rowcount} record inserted.")
+
+
+def login(request, **data):
+    try:
+        connection = mysql.connector.connect(host='localhost',
+                                             database='m7011e',
+                                             user='root',
+                                             password='')
+
+        # MySQLCursorDict creates a cursor that returns rows as dictionaries
+        cursor = connection.cursor()
+        # MySQLCursorDict creates a cursor that returns rows as dictionaries
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute(
+            'SELECT password FROM user WHERE user_name=%s', (data.get('username'),))
+        records = cursor.fetchall()
+
+    except Error as e:
+        print("parameterized query failed {}".format(e))
+    finally:
+        if connection.is_connected():
+            connection.close()
+            cursor.close()
+            return Response(f"{records}")
 
 
 def search_global_list(id, list):
