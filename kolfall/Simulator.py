@@ -11,16 +11,27 @@ from werkzeug.wrappers import Request, Response
 from multiprocessing import Process, Queue, Pipe
 from resources.GetDataFromExApi import get_data_from_station
 from Lorax import create_house_holds_objects, create_power_plants_objects
-from flask import Flask, json, jsonify
 from Market import Market
+####################################
+import os
+import redis
+from werkzeug.urls import url_parse
+from werkzeug.wrappers import Request, Response
+from werkzeug.routing import Map, Rule
+from werkzeug.exceptions import HTTPException, NotFound
+from werkzeug.middleware.shared_data import SharedDataMiddleware
+from werkzeug.utils import redirect
+from jinja2 import Environment, FileSystemLoader
+from werkzeug.routing import Map, Rule, NotFound, RequestRedirect
+from werkzeug.wsgi import responder
+##############################
+
 
 global_household_list = []
 global_power_plant_list = []
 global_event_list = []
 global_market = Market(0)
 fixed_price = 10
-
-app = Flask(__name__)
 
 
 class Events:
@@ -196,57 +207,79 @@ class Simulator:
             print(simulator_production-simulator_consumption)
             print(
                 f"????????????????? {global_market.market_buffert.content} ?????????????????")
-            sleep(1)
+            sleep(10)
 
         # On Windows the subprocesses will import (i.e. execute) the main module at start. You need to insert an if __name__ == '__main__': guard in the main module to avoid creating subprocesses
         # set_temp(0,"Strandv%C3%A4gen%205", "104%2040")
 
 
+# TODO MAKE METHODS ONYL RESPOND IF CORRECT GET/POST IS USED
 class SimulatorEndPoints:
-    @app.route('/DATA/house_hold/consumption/house_hold=<int:id>', methods=['GET'])
-    def get_house_hold_consumption(id):
+
+    @rate_limited(1/10, mode='kill')
+    def on_change_power_plant_output(request, **data):
+        Events.change_production(data.get('id'), data.get('power'))
+        return Response(f"burning {data} hamsters insted")
+
+    def buy(request, **data):
+        global global_market
+        for house_hold in global_household_list:
+            if house_hold._id == data.get('id'):
+                if data.get('amount') < global_market.market_buffert.content:
+                    house_hold._buffert.content += data.get('amount')
+                    Market.buy_from_market(global_market, data.get('amount'))
+                    return Response(f"SUCC {global_market.market_buffert.content}")
+                return Response(f"FAIL {global_market.market_buffert.content}")
+
+    def sell(request, **data):
+        global global_market
+        for house_hold in global_household_list:
+            if house_hold._id == data.get('id'):
+                if data.get('amount') < house_hold._buffert.content:
+                    house_hold._buffert.content -= data.get('amount')
+                    Market.send_to_market(global_market, data.get('amount'))
+                    return Response(f"SUCC {global_market.market_buffert.content}")
+                return Response(f"FAIL {house_hold._buffert.content}")
+
+    @rate_limited(1/10, mode='kill')  # FIX
+    def change_market_size(request, **data):
+        global global_market
+        Market.change_market_size(global_market, data.get('size'))
+        return Response(f"Changning market size to {data.get('size')} hamsters insted")
+
+    def get_house_hold_consumption(request, **data):
         global global_household_list
         for house_hold in global_household_list:
-            if house_hold._id == id:
-                return str(house_hold.consumption)
+            if house_hold._id == data.get('id'):
+                return Response(str(house_hold.consumption))
             else:
-                return "do not finns"
+                return Response("do not finns")
 
-    # ONLY WORKS FOR ONE EVENT
-    @app.route('/admin/tools/change_power/id=<int:id>&power=<int:power>', methods=['POST'])
-    @rate_limited(1/10, mode='kill')
-    def change_power_plant_output(id, power):
-        Events.change_production(id, power)
-        return f"burning {power} hamsters insted"
+    @responder
+    def application(environ, start_response):
+        url_map = Map([
+            Rule(
+                '/admin/tools/change_power/id=<int:id>&power=<int:power>', endpoint='change_power'),
+            Rule(
+                '/buy/house_hold/prosumer/house_hold=<int:id>&amount=<int:amount>', endpoint='buy'),
+            Rule(
+                '/sell/house_hold/prosumer/house_hold=<int:id>&amount=<int:amount>', endpoint='sell'),
+            Rule('/admin/tools/change_market_size/size=<int:size>',
+                 endpoint="change_market_size"),
+            Rule('/DATA/house_hold/consumption/house_hold=<int:id>',
+                 endpoint='get_house_hold_consumption')
+        ])
 
-    # ONLY WORKS FOR ONE EVENT
-    @app.route('/admin/tools/change_market_size/size=<int:size>', methods=['POST'])
-    @rate_limited(1/10, mode='kill')
-    def change_market_size(size):
-        Events.change_market_size(size)
-        return f"Changning market size to {size} hamsters insted"
+        views = {'change_power': SimulatorEndPoints.on_change_power_plant_output,
+                 'buy': SimulatorEndPoints.buy,
+                 'sell': SimulatorEndPoints.sell,
+                 'change_market_size': SimulatorEndPoints.change_market_size,
+                 'get_house_hold_consumption': SimulatorEndPoints.get_house_hold_consumption}
 
-    @app.route('/sell/house_hold/prosumer/house_hold=<int:id>&amount=<int:amount>', methods=['POST'])
-    def sell(id, amount):
-        global global_market
-        for house_hold in global_household_list:
-            if house_hold._id == id:
-                if amount < house_hold._buffert.content:
-                    house_hold._buffert.content -= amount
-                    Market.send_to_market(global_market, amount)
-                    return (f"SUCC {global_market.market_buffert.content}")
-                return (f"FAIL {house_hold._buffert.content}")
-
-    @app.route('/buy/house_hold/prosumer/house_hold=<int:id>&amount=<int:amount>', methods=['POST'])
-    def buy(id, amount):
-        global global_market
-        for house_hold in global_household_list:
-            if house_hold._id == id:
-                if amount < global_market.market_buffert.content:
-                    house_hold._buffert.content += amount
-                    Market.buy_from_market(global_market, amount)
-                    return (f"SUCC {global_market.market_buffert.content}")
-                return (f"FAIL {global_market.market_buffert.content}")
+        request = Request(environ)
+        urls = url_map.bind_to_environ(environ)
+        return urls.dispatch(lambda e, v: views[e](request, **v),
+                             catch_http_exceptions=True)
 
 
 if __name__ == "__main__":
@@ -256,7 +289,5 @@ if __name__ == "__main__":
     x = threading.Thread(target=sim.run)
     x.daemon = True
     x.start()
-    # y = threading.Thread(target=smhi.update_data)
-    # y.daemon = True
-    # y.start()
-    app.run()  # Main thred
+    from werkzeug.serving import run_simple
+    run_simple('127.0.0.1', 5000, SimulatorEndPoints.application)
