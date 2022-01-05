@@ -10,11 +10,13 @@ const cookieParser = require('cookie-parser');
 const session = require('express-session')
 const saltRounds = 10;
 const jwt = require("jsonwebtoken");
+
+
 app.use(express.json());
-var whitelist = ['http://localhost:3000', "http://nominatim.openstreetmap.org"];
+var whitelist = ['http://localhost:3000', "http://nominatim.openstreetmap.org", 'http://localhost:3000'];
 
 app.use(cors({
-    origin: ['http://localhost:3000', "http://nominatim.openstreetmap.org"],
+    origin: whitelist,
     credentials: true
 
 }));
@@ -69,50 +71,32 @@ app.post("/register",  async (req, res)=>{
     var exists;
    // console.log(Axios.get('http://nominatim.openstreetmap.org/search.php?street='+address+ '&postalcode='+zip+ '&format=json'))
     await Axios.get('http://nominatim.openstreetmap.org/search.php?street='+address+ '&postalcode='+zip+ '&format=json').then(resp => {
-                console.log(resp)
                 exists = resp.data.length;
-                console.log (exists)
             })
     
     //TODO fixa querry för ny databas
     //const sqlInsert = "INSERT INTO user (name, email, adress, zip, password) VALUES (?,?,?,?,?)";
     console.log("was here")
+    await Axios.post('http://127.0.0.1:5000/register/username='+name+'&password='+password+'&email='+email+'&address='+address+'&zipcode='+zip+'&prosumer='+prosumer).then(resp0 => {
+        console.log(resp0)
+        exists = resp.data.length;
+        console.log (exists)
+        bcrypt.hash(password, saltRounds, (err, hash) =>{
+            if (err){
+                console.log(err)
+            }
+            if(exists>0){
+                Axios.post('http://127.0.0.1:5000/register/username='+name+'&password='+hash+'&email='+email+'&address='+address+'&zipcode='+zip+'&prosumer='+prosumer).then(resp0 => {
+                    console.log(resp0)
+                })  
+            }
+            else{
+                console.log("address faulty")
 
-    db.query("SELECT user_id FROM user WHERE user_name = ?;",
-    name, 
-    (err, result)=> {
-        console.log(result.length)
-        if(err) {
-            res.send({err: err});
-            console.log("stuck")
-        }
-         if(result.length > 0){
-            res.send({message: "Login information is invalid. User already registered."});
-         } else {
-            bcrypt.hash(password, saltRounds, (err, hash) =>{
-                if (err){
-                    console.log(err)
-                }
-                if(exists>0){
-                    db.query("INSERT INTO user (user_name, password, email, address, zipcode, prosumer) VALUES (?,?,?,?,?,?)", 
-                    [name, hash, email, address, zip, prosumer], 
-                    (err, result)=> {
-                        if(err) {
-                            console.log(err);
-                        }else{
-                           console.log("hi") //res.json("USER REGISTERED");
-                        }
-                    }
-                    );
-                }
-                else{
-                    console.log("address faulty")
-
-                }
-                
-            });
-         }
-    });
+            }
+            
+        });
+    })
 
 });
 app.get("/login", (req, res)=> {
@@ -167,6 +151,40 @@ app.post("/admin", (req, res)=>{
 
     const name = req.body.loginName;
     const password = req.body.loginPassword;
+    console.log(password)
+    db.query("SELECT * FROM admin_table WHERE admin = ?;",
+    name, 
+    (err, result)=> {
+        if(err) {
+            res.send({err: err});
+        }
+         if(result.length > 0){
+             bcrypt.compare(password, result[0].password, (error, answer) =>{
+                 console.log(answer)
+                 if(answer){
+                    console.log(answer)
+                    console.log(result[0].admin)
+                     const id = result[0].admin
+                     //TODO encrypt if time
+                     const token = jwt.sign({id}, "Test", {
+                         expiresIn: 300,
+                     })
+                     req.session.user = result
+
+                     res.json({auth: true, token: token, result: result})
+                 }else{
+                    res.json({auth: false, message: "Wrong username password combination"}); 
+                 }
+             });
+         } else {
+             res.json({auth: false, message: "no user exists"});
+         }
+    });
+
+});
+app.post("/sell", verifyJWT, (req, res)=>{
+
+    const amount = req.body.
     console.log(password)
     db.query("SELECT * FROM admin_table WHERE admin = ?;",
     name, 

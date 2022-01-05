@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import Axios from 'axios';
-Axios.defaults.withCredentials = true;
+Axios.defaults.withCredentials = false;
 function Admin() {
         const[loginName, setLoginName] = useState("");
         const[loginPassword, setLoginPassword] = useState("");

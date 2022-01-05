@@ -1,7 +1,10 @@
 import React, {useEffect, useState} from "react";
 import Axios from 'axios';
-Axios.defaults.withCredentials = true;
+import { useNavigate } from 'react-router-dom';
+Axios.defaults.withCredentials = false;
+
 function Login() {
+        const navigate = useNavigate();
         const[loginName, setLoginName] = useState("");
         const[loginPassword, setLoginPassword] = useState("");
         const[loginStatus, setLoginStatus] = useState(false);
@@ -15,6 +18,7 @@ function Login() {
               }else{
                 localStorage.setItem("token", response.data.token)
                 setLoginStatus(true)
+                navigate('/admin');
               }
             }).catch(err => err);
         };
@@ -31,7 +35,10 @@ function Login() {
             headers:{
               "x-access-token": localStorage.getItem("token")
           }}).then((response)=>{
-            console.log(response);
+            console.log(response.data);
+            if(response.data = "Authenticated"){
+            }
+
           }).catch(err => err);
         }
         return (
