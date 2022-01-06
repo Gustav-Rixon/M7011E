@@ -3,7 +3,7 @@ from time import sleep
 from resources.Rate_limited import rate_limited
 from mp1 import calc_temp, calc_wind, calc_electricity_consumption, calc_production
 from werkzeug.wrappers import Request, Response
-from Lorax import create_house_holds_objects, create_power_plants_objects, register, login, add_house_hold, admin_login
+from Lorax import create_house_holds_objects, create_power_plants_objects, register, login, add_house_hold, admin_login, checktest, remove_user_from_database, remove_user_from_simulation
 from Market import Market
 from werkzeug.wrappers import Request, Response
 from werkzeug.routing import Map, Rule
@@ -154,8 +154,8 @@ class Simulator:
         while True:
 
             print("RUNNING")
-            # self._consumer_households_in_siumulation, self._prosumer_households_in_siumulation = checktest(self._consumer_households_in_siumulation,
-            #                                                                                               self._prosumer_households_in_siumulation)
+            self._consumer_households_in_siumulation, self._prosumer_households_in_siumulation = checktest(self._consumer_households_in_siumulation,
+                                                                                                           self._prosumer_households_in_siumulation)
             # global_household_list = self._consumer_households_in_siumulation + \
             #    self._prosumer_households_in_siumulation
             # TODO HAVE A LIST OR INSTAND ACTION
@@ -205,7 +205,7 @@ class Simulator:
             print(simulator_production-simulator_consumption)
             print(
                 f"????????????????? {global_market.market_buffert.content} ?????????????????")
-            sleep(10)
+            sleep(1)
 
         # On Windows the subprocesses will import (i.e. execute) the main module at start. You need to insert an if __name__ == '__main__': guard in the main module to avoid creating subprocesses
         # set_temp(0,"Strandv%C3%A4gen%205", "104%2040")
@@ -271,7 +271,11 @@ class SimulatorEndPoints:
                 '/register/username=<string:username>&password=<string:password>&email=<string:email>&address=<string:address>&zipcode=<string:zipcode>&prosumer=<int:prosumer>', endpoint='register'),
             Rule('/login/username=<string:username>', endpoint='login'),
             Rule('/test/username=<string:username>', endpoint='test'),
-            Rule('/admin/login/username=<string:username>', endpoint='admin_login')
+            Rule('/admin/login/username=<string:username>',
+                 endpoint='admin_login'),
+            Rule('/admin/remove_user/user_id=<int:user_id>',
+                 endpoint='remove_user'),
+            Rule('/test', endpoint='test2')
         ])
 
         views = {'change_power': SimulatorEndPoints.on_change_power_plant_output,
@@ -282,7 +286,9 @@ class SimulatorEndPoints:
                  'register': register,
                  'login': login,
                  'test': add_house_hold,
-                 'admin_login': admin_login}
+                 'admin_login': admin_login,
+                 'remove_user': remove_user_from_database,
+                 'test2': remove_user_from_simulation}
 
         request = Request(environ)
         urls = url_map.bind_to_environ(environ)

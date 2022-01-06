@@ -156,7 +156,7 @@ def checktest(consumer_households_in_siumulation, prosumer_households_in_siumula
 
         if count < check:
             print("¤¤¤¤¤¤¤¤¤¤¤¤¤¤__CHANGE__REMOVING__USER__¤¤¤¤¤¤¤¤¤¤¤¤¤¤")
-            consumer_households_in_siumulation, prosumer_households_in_siumulation = remove_user(
+            consumer_households_in_siumulation, prosumer_households_in_siumulation = remove_user_from_simulation(
                 consumer_households_in_siumulation, prosumer_households_in_siumulation)
 
     except Error as e:
@@ -204,33 +204,73 @@ def add_new_user(consumer_households_in_siumulation, prosumer_households_in_sium
             return consumer_households_in_siumulation, prosumer_households_in_siumulation
 
 
-def remove_user(consumer_households_in_siumulation, prosumer_households_in_siumulation):
-    list3 = consumer_households_in_siumulation + prosumer_households_in_siumulation
-    counter = 0
+# TODO REMOVE FROM SIM
+def remove_user_from_database(request, **data):
     try:
         connection = mysql.connector.connect(host='localhost',
                                              database='m7011e',
                                              user='root',
                                              password='')
-        sql_select_Query = "select * from house_hold"
+
         # MySQLCursorDict creates a cursor that returns rows as dictionaries
         cursor = connection.cursor(dictionary=True)
-        cursor.execute(sql_select_Query)
-        records = cursor.fetchall()
-
-        for row in records:
-            user_user_id = row["user_user_id"]
-            prosumer = row["prosumer"]
-
-            if search_global_list(user_user_id, list3) == False:
-                if prosumer == 0:
-                    consumer_households_in_siumulation.pop(counter)
-                elif prosumer == 1:
-                    prosumer_households_in_siumulation.pop(counter)
-            counter += 1
+        cursor.execute('DELETE FROM user WHERE user_id=%s',
+                       (data.get('user_id'),))
+        connection.commit()
 
     except Error as e:
-        print("Error reading data from MySQL table", e)
+        print("Error deleting data from MySQL table", e)
+    finally:
+        if connection.is_connected():
+            connection.close()
+            cursor.close()
+            return Response(f"{cursor.rowcount}")
+
+
+# TODO FIX IF A CONSUMER EXIST YOU CANT REMOVE A PROSUMer
+def remove_user_from_simulation(consumer_households_in_siumulation, prosumer_households_in_siumulation):
+    lista = []  # list of consumers in simulator
+    listb = []  # list of prosumers in simulator
+    consumer_households_in_siumulation_temp = []  # list of consumers form database
+    prosumer_households_in_siumulation_temp = []  # list of prosumers form database
+
+    try:
+        connection = mysql.connector.connect(host='localhost',
+                                             database='m7011e',
+                                             user='root',
+                                             password='')
+
+        # MySQLCursorDict creates a cursor that returns rows as dictionaries
+        cursor = connection.cursor()
+        cursor.execute('SELECT user_id, prosumer FROM user')
+        records = cursor.fetchall()
+
+        for object in records:
+            if object[1] == 0:
+                lista.append(object[0])
+            if object[1] == 1:
+                listb.append(object[0])
+
+        for object in consumer_households_in_siumulation:
+            consumer_households_in_siumulation_temp.append(object._id)
+        for object in prosumer_households_in_siumulation:
+            prosumer_households_in_siumulation_temp.append(object._id)
+
+        remove1 = list(set(consumer_households_in_siumulation_temp) -
+                       set(lista))
+        remove2 = list(set(prosumer_households_in_siumulation_temp) -
+                       set(listb))
+
+        for object in consumer_households_in_siumulation:
+            if object._id == remove1[0]:
+                consumer_households_in_siumulation.remove(object)
+
+        for object in prosumer_households_in_siumulation:
+            if object._id == remove2[0]:
+                prosumer_households_in_siumulation.remove(object)
+
+    except Error as e:
+        print("Error selecting data from MySQL table", e)
     finally:
         if connection.is_connected():
             connection.close()
@@ -263,7 +303,7 @@ def register(request, **data):
         val = (data.get("username"), data.get("password"), data.get(
             "email"), data.get("address"), data.get("zipcode"), data.get("prosumer"))
         cursor.execute(sql, val)
-        #records = cursor.commit()
+        # records = cursor.commit()
         connection.commit()
         add_house_hold(data.get("username"))
 
