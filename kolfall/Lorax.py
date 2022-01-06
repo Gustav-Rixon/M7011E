@@ -1,3 +1,4 @@
+from os import remove
 from time import sleep
 import mysql.connector
 from mysql.connector import Error
@@ -227,7 +228,6 @@ def remove_user_from_database(request, **data):
             return Response(f"{cursor.rowcount}")
 
 
-# TODO FIX IF A CONSUMER EXIST YOU CANT REMOVE A PROSUMer
 def remove_user_from_simulation(consumer_households_in_siumulation, prosumer_households_in_siumulation):
     lista = []  # list of consumers in simulator
     listb = []  # list of prosumers in simulator
@@ -261,13 +261,13 @@ def remove_user_from_simulation(consumer_households_in_siumulation, prosumer_hou
         remove2 = list(set(prosumer_households_in_siumulation_temp) -
                        set(listb))
 
-        for object in consumer_households_in_siumulation:
-            if object._id == remove1[0]:
-                consumer_households_in_siumulation.remove(object)
-
-        for object in prosumer_households_in_siumulation:
-            if object._id == remove2[0]:
-                prosumer_households_in_siumulation.remove(object)
+        # If this if statment is removed you cant remove consumer if there are prosumer(s)
+        if remove1 < remove2:
+            prosumer_households_in_siumulation = remove_element(
+                prosumer_households_in_siumulation, remove2)
+        else:
+            consumer_households_in_siumulation = remove_element(
+                consumer_households_in_siumulation, remove1)
 
     except Error as e:
         print("Error selecting data from MySQL table", e)
@@ -278,8 +278,16 @@ def remove_user_from_simulation(consumer_households_in_siumulation, prosumer_hou
             return consumer_households_in_siumulation, prosumer_households_in_siumulation
 
 
+def remove_element(list, remove):
+    for object in list:
+        if object._id == remove[0]:
+            list.remove(object)
+    return list
+
 # TODO SOLV ERROR MASSAGE
 # TODO REJECT SAME USERNAME
+
+
 def register(request, **data):
     """[Checks if object id is in list]
 
@@ -353,7 +361,7 @@ def admin_login(request, **data):
         # MySQLCursorDict creates a cursor that returns rows as dictionaries
         cursor = connection.cursor(dictionary=True)
         cursor.execute(
-            'SELECT password, user_id FROM user WHERE user_name=%s', (data.get('username'),))
+            'SELECT password FROM admin_table WHERE admin =%s', (data.get('username'),))
         records = cursor.fetchall()
 
     except Error as e:
