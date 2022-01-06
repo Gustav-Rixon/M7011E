@@ -240,6 +240,15 @@ def remove_user(consumer_households_in_siumulation, prosumer_households_in_siumu
 # TODO SOLV ERROR MASSAGE
 # TODO REJECT SAME USERNAME
 def register(request, **data):
+    """[Checks if object id is in list]
+
+    Args:
+        id ([int]): [id to search for]
+        list ([list]): [list of objects to search through]
+
+    Returns:
+        [String]: [1 if inserted, -1 if not inserted]
+    """
     try:
         connection = mysql.connector.connect(host='localhost',
                                              database='m7011e',
@@ -257,12 +266,12 @@ def register(request, **data):
         connection.commit()
 
     except Error as e:
-        print("parameterized query failed {}".format(e))
+        return Response("Failed to insert into MySQL table {}".format(e))
     finally:
         if connection.is_connected():
             connection.close()
             cursor.close()
-            return Response(f"{data} record inserted.")
+            return Response(f"{cursor.rowcount}")
 
 
 def login(request, **data):
@@ -289,7 +298,7 @@ def login(request, **data):
             return Response(f"{records}")
 
 
-def add_house_hold(username):
+def add_house_hold(request, **data):
     try:
         connection = mysql.connector.connect(host='localhost',
                                              database='m7011e',
@@ -301,7 +310,7 @@ def add_house_hold(username):
         # MySQLCursorDict creates a cursor that returns rows as dictionaries
         cursor = connection.cursor(dictionary=True)
         cursor.execute(
-            'SELECT user_id FROM user WHERE user_name=%s', (username))
+            'SELECT user_id FROM user WHERE user_name=%s', (data.get('username'),))
         records = cursor.fetchall()
 
     except Error as e:

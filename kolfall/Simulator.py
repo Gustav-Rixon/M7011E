@@ -10,7 +10,7 @@ from mp1 import calc_station, calc_temp, calc_wind, calc_electricity_consumption
 from werkzeug.wrappers import Request, Response
 from multiprocessing import Process, Queue, Pipe
 from resources.GetDataFromExApi import get_data_from_station
-from Lorax import create_house_holds_objects, create_power_plants_objects, checktest, register, login
+from Lorax import create_house_holds_objects, create_power_plants_objects, checktest, register, login, add_house_hold
 from Market import Market
 ####################################
 import os
@@ -287,7 +287,7 @@ class SimulatorEndPoints:
             Rule(
                 '/register/username=<string:username>&password=<string:password>&email=<string:email>&address=<string:address>&zipcode=<string:zipcode>&prosumer=<int:prosumer>', endpoint='register'),
             Rule('/login/username=<string:username>', endpoint='login'),
-            Rule('/test', endpoint='test')
+            Rule('/test/username=<string:username>', endpoint='test')
         ])
 
         views = {'change_power': SimulatorEndPoints.on_change_power_plant_output,
@@ -296,7 +296,8 @@ class SimulatorEndPoints:
                  'change_market_size': SimulatorEndPoints.change_market_size,
                  'get_house_hold_consumption': SimulatorEndPoints.get_house_hold_consumption,
                  'register': register,
-                 'login': login}
+                 'login': login,
+                 'test': add_house_hold}
 
         request = Request(environ)
         urls = url_map.bind_to_environ(environ)
