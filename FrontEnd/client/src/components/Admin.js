@@ -18,14 +18,6 @@ function Admin() {
               }
             }).catch(err => err);
         };
-        useEffect(()=>{
-          Axios.get("http://localhost:3001/admin").then((response)=>{
-            if(response.data.loggedIn === true){
-              setLoginStatus(true);
-        }
-          }).catch(err => err);
-        }, []);
-
         const authenticated = () =>{
           Axios.get("http://localhost:3001/Authenticated", {
             headers:{

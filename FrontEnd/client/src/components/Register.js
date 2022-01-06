@@ -16,12 +16,11 @@ function Register() {
     const[zip, setZip] = useState("");
     const[password, setPassword] = useState("");
     const[email, setEmail] = useState("");
-    const[loginStatus, setLoginStatus] = useState(false);
+    const[loginStatus, setLoginStatus] = useState("");
     const[prosumer, setProsumer] = useState('0');
     const submitRegistration = () => {
           //TODO fixa om tid finns Skriv if sats för alla steg
           if(name !== "" && email.includes("@",".") && zip !==0 && password !==""){
-            try {
               Axios.post("http://localhost:3001/register", {
                 name: name,
                 address: address, 
@@ -31,17 +30,16 @@ function Register() {
                 prosumer:prosumer
               }).then((response)=> {
                 if(response.data.message){
-                  setLoginStatus(false)
+                  setLoginStatus(response.data.message)
                 }else{
-                  setLoginStatus(true)
+                  setLoginStatus("funkade")
                 }
               }).catch(error => console.log(error));
-            } catch (error) {
-              setLoginStatus(false)
-            }
           }
-          setLoginStatus(false); 
-          console.log("Faulty inputs")
+          else{
+            setLoginStatus("Faulty inputs") 
+            console.log("Faulty inputs")
+          }
     };
     return (
         <div className="Register">    
@@ -74,7 +72,7 @@ function Register() {
         }
         } />
         <button onClick={submitRegistration}> Register</button>
-        <h1>{toString(loginStatus)}</h1>
+        <h1>{loginStatus}</h1>
       </div>
     );
 }

@@ -7,28 +7,20 @@ function Login() {
         const navigate = useNavigate();
         const[loginName, setLoginName] = useState("");
         const[loginPassword, setLoginPassword] = useState("");
-        const[loginStatus, setLoginStatus] = useState(false);
+        const[loginStatus, setLoginStatus] = useState("");
         const submitLogin = () => {
             Axios.post("http://localhost:3001/login", {
               loginName: loginName,
               loginPassword: loginPassword
             }).then((response)=> {
               if(response.data.message){
-                setLoginStatus(false)
+                setLoginStatus(response.data.message)
               }else{
                 localStorage.setItem("token", response.data.token)
-                setLoginStatus(true)
                 navigate('/admin');
               }
             }).catch(err => err);
         };
-        useEffect(()=>{
-          Axios.get("http://localhost:3001/login").then((response)=>{
-            if(response.data.loggedIn === true){
-              setLoginStatus(true);
-        }
-          }).catch(err => err);
-        }, []);
 
         const authenticated = () =>{
           Axios.get("http://localhost:3001/Authenticated", {
@@ -53,9 +45,9 @@ function Login() {
           setLoginPassword(event.target.value);
         } } />
         <button onClick={submitLogin}> Login</button>
-        {loginStatus &&(
-          <button onClick={authenticated}>check if auth</button>
-        )}
+        <h1>{loginStatus}</h1>
+        <button onClick={authenticated}>check if auth</button>
+        
       </div>
         );
 }
