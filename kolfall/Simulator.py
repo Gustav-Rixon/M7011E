@@ -1,30 +1,13 @@
-from multiprocessing import Process, Queue, Pipe
-from multiprocessing.process import current_process
 import threading
-import signal
 from time import sleep
-from mp1 import send_info_wind, send_info_temp
 from resources.Rate_limited import rate_limited
-import json
-from mp1 import calc_station, calc_temp, calc_wind, calc_electricity_consumption, calc_production
+from mp1 import calc_temp, calc_wind, calc_electricity_consumption, calc_production
 from werkzeug.wrappers import Request, Response
-from multiprocessing import Process, Queue, Pipe
-from resources.GetDataFromExApi import get_data_from_station
-from Lorax import create_house_holds_objects, create_power_plants_objects, checktest, register, login, add_house_hold, admin_login
+from Lorax import create_house_holds_objects, create_power_plants_objects, register, login, add_house_hold, admin_login
 from Market import Market
-####################################
-import os
-import redis
-from werkzeug.urls import url_parse
 from werkzeug.wrappers import Request, Response
 from werkzeug.routing import Map, Rule
-from werkzeug.exceptions import HTTPException, NotFound
-from werkzeug.middleware.shared_data import SharedDataMiddleware
-from werkzeug.utils import redirect
-from jinja2 import Environment, FileSystemLoader
-from werkzeug.routing import Map, Rule, NotFound, RequestRedirect
 from werkzeug.wsgi import responder
-##############################
 
 
 global_household_list = []
@@ -288,7 +271,7 @@ class SimulatorEndPoints:
                 '/register/username=<string:username>&password=<string:password>&email=<string:email>&address=<string:address>&zipcode=<string:zipcode>&prosumer=<int:prosumer>', endpoint='register'),
             Rule('/login/username=<string:username>', endpoint='login'),
             Rule('/test/username=<string:username>', endpoint='test'),
-            Rule('admin/login/username=<string:username>', endpoint='admin_login')
+            Rule('/admin/login/username=<string:username>', endpoint='admin_login')
         ])
 
         views = {'change_power': SimulatorEndPoints.on_change_power_plant_output,
