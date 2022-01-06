@@ -28,8 +28,8 @@ def calc_station(address, zipcode):
     data = json.loads(get_data(address, zipcode))
     lon = float(data[0]['lon'])
     lat = float(data[0]['lat'])
-    closest_station = get_close(lon, lat)
-    return closest_station
+    closest_station, closest_station_id = get_close(lon, lat)
+    return closest_station, closest_station_id
 
 
 def calc_temp(station_id, distance):
