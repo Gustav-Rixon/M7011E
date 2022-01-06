@@ -286,7 +286,8 @@ class SimulatorEndPoints:
                  endpoint='get_house_hold_consumption'),
             Rule(
                 '/register/username=<string:username>&password=<string:password>&email=<string:email>&address=<string:address>&zipcode=<string:zipcode>&prosumer=<int:prosumer>', endpoint='register'),
-            Rule('/login/username=<string:username>', endpoint='login')
+            Rule('/login/username=<string:username>', endpoint='login'),
+            Rule('/test', endpoint='test')
         ])
 
         views = {'change_power': SimulatorEndPoints.on_change_power_plant_output,

@@ -1,3 +1,4 @@
+from time import sleep
 import mysql.connector
 from mysql.connector import Error
 from werkzeug.wrappers.response import Response
@@ -237,6 +238,7 @@ def remove_user(consumer_households_in_siumulation, prosumer_households_in_siumu
 
 
 # TODO SOLV ERROR MASSAGE
+# TODO REJECT SAME USERNAME
 def register(request, **data):
     try:
         connection = mysql.connector.connect(host='localhost',
@@ -245,12 +247,13 @@ def register(request, **data):
                                              password='')
 
         # MySQLCursorDict creates a cursor that returns rows as dictionaries
-        cursor = connection.cursor(prepared=True)
+        cursor = connection.cursor(dictionary=True)
 
         sql = """INSERT INTO user (user_name, password, email, address, zipcode, prosumer) VALUES (%s, %s, %s, %s, %s, %s)"""
         val = (data.get("username"), data.get("password"), data.get(
             "email"), data.get("address"), data.get("zipcode"), data.get("prosumer"))
         cursor.execute(sql, val)
+        #records = cursor.commit()
         connection.commit()
 
     except Error as e:
@@ -259,7 +262,7 @@ def register(request, **data):
         if connection.is_connected():
             connection.close()
             cursor.close()
-            return Response(f"{cursor.rowcount} record inserted.")
+            return Response(f"{data} record inserted.")
 
 
 def login(request, **data):
@@ -275,6 +278,30 @@ def login(request, **data):
         cursor = connection.cursor(dictionary=True)
         cursor.execute(
             'SELECT password FROM user WHERE user_name=%s', (data.get('username'),))
+        records = cursor.fetchall()
+
+    except Error as e:
+        print("parameterized query failed {}".format(e))
+    finally:
+        if connection.is_connected():
+            connection.close()
+            cursor.close()
+            return Response(f"{records}")
+
+
+def add_house_hold(username):
+    try:
+        connection = mysql.connector.connect(host='localhost',
+                                             database='m7011e',
+                                             user='root',
+                                             password='')
+
+        # MySQLCursorDict creates a cursor that returns rows as dictionaries
+        cursor = connection.cursor()
+        # MySQLCursorDict creates a cursor that returns rows as dictionaries
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute(
+            'SELECT user_id FROM user WHERE user_name=%s', (username))
         records = cursor.fetchall()
 
     except Error as e:
