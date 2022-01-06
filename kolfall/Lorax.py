@@ -2,7 +2,6 @@ from time import sleep
 import mysql.connector
 from mysql.connector import Error
 from werkzeug.wrappers.response import Response
-from resources import GpsTest
 import mp1
 
 
@@ -278,6 +277,31 @@ def register(request, **data):
 
 
 def login(request, **data):
+    try:
+        connection = mysql.connector.connect(host='localhost',
+                                             database='m7011e',
+                                             user='root',
+                                             password='')
+
+        # MySQLCursorDict creates a cursor that returns rows as dictionaries
+        cursor = connection.cursor()
+        # MySQLCursorDict creates a cursor that returns rows as dictionaries
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute(
+            'SELECT password, user_id FROM user WHERE user_name=%s', (data.get('username'),))
+        records = cursor.fetchall()
+
+    except Error as e:
+        print("parameterized query failed {}".format(e))
+    finally:
+        if connection.is_connected():
+            connection.close()
+            cursor.close()
+            return Response(f"{records}")
+
+
+# TODO ADD ADMIN TABLE IN DATABASE
+def admin_login(request, **data):
     try:
         connection = mysql.connector.connect(host='localhost',
                                              database='m7011e',
