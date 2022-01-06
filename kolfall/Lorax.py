@@ -3,6 +3,7 @@ import mysql.connector
 from mysql.connector import Error
 from werkzeug.wrappers.response import Response
 from resources import GpsTest
+import mp1
 
 
 class Consumer:
@@ -265,6 +266,7 @@ def register(request, **data):
         cursor.execute(sql, val)
         #records = cursor.commit()
         connection.commit()
+        add_house_hold(data.get("username"))
 
     except Error as e:
         return Response("Failed to insert into MySQL table {}".format(e))
@@ -299,8 +301,7 @@ def login(request, **data):
             return Response(f"{records}")
 
 
-# TODO GET CLOSETS STATION_ID/DISTANCE
-def add_house_hold(request, **data):
+def add_house_hold(username):
     try:
         connection = mysql.connector.connect(host='localhost',
                                              database='m7011e',
@@ -312,14 +313,19 @@ def add_house_hold(request, **data):
         # MySQLCursorDict creates a cursor that returns rows as dictionaries
         cursor = connection.cursor(dictionary=True)
         cursor.execute(
-            'SELECT user_id, prosumer, address, zipcode FROM user WHERE user_name=%s', (data.get('username'),))
+            'SELECT user_id, prosumer, address, zipcode FROM user WHERE user_name=%s', (username,))
         records = cursor.fetchall()
 
         # Get GPS FOR ADDRESS
-        data = GpsTest.get_data(records[0]['address'], records[0]['zipcode'])
-        closest_station = GpsTest.get_close(data[0]['lon'], data[0]['lat'])
+        closest_station_id, closest_station = mp1.calc_station(
+            records[0]['address'], records[0]['zipcode'])
 
-        # records[0]['user_id']
+        sql = """INSERT INTO house_hold (closest_station_id, distans_to_station, user_user_id, prosumer) VALUES (%s, %s, %s, %s)"""
+        val = (closest_station_id, closest_station,
+               records[0]['user_id'], records[0]['prosumer'])
+
+        cursor.execute(sql, val)
+        connection.commit()
 
     except Error as e:
         print("parameterized query failed {}".format(e))
@@ -327,7 +333,7 @@ def add_house_hold(request, **data):
         if connection.is_connected():
             connection.close()
             cursor.close()
-            return Response(f"{test}")
+            return Response(f"{cursor.rowcount}")
 
 
 def search_global_list(id, list):
