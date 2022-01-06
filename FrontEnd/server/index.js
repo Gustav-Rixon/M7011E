@@ -57,19 +57,22 @@ app.get('/Authenticated', verifyJWT, (req,res) => {
 //TODO fixa så att vägen finns innan det läggs in i table. kalla på rixons backend function om inget returnar så invalid input
 app.post("/register",  async (req, res)=>{
     const {name,zip,address,password,email,prosumer} =req.body;
+    console.log(prosumer)
     var exists;
    // console.log(Axios.get('http://nominatim.openstreetmap.org/search.php?street='+address+ '&postalcode='+zip+ '&format=json'))
     Axios.get('http://nominatim.openstreetmap.org/search.php?street='+address+ '&postalcode='+zip+ '&format=json').then(resp => {
                 exists = resp.data.length;
-                console.log(resp)
-                console.log (exists)
                 if(exists===1){
                 bcrypt.hash(password, saltRounds, (err, hash) =>{
                     if (err){
                         console.log(err)
                     }
-                    Axios.post('http://127.0.0.1:5000/register/username='+name+'&password='+hash+'&email='+email+'&address='+address+'&zipcode='+zip+'&prosumer='+prosumer).then(resp => {
+                    Axios.post('http://127.0.0.1:5000/register/username='+name+'&password='+hash+'&email='+email+'&address='+address+'&zipcode='+zip+'&prosumer='+prosumer).then(resp1 => {
+                        if (resp1.data === 1)
                         res.json({message: "Successfull registration"})
+                        else{
+                            res.json({message: "Username already in use please use another one"})
+                        }
                     }).catch(err => err);
                       
 
@@ -122,35 +125,31 @@ app.post("/admin", (req, res)=>{
 
     const name = req.body.loginName;
     const password = req.body.loginPassword;
-    console.log(password)
-    db.query("SELECT * FROM admin_table WHERE admin = ?;",
-    name, 
-    (err, result)=> {
-        if(err) {
-            res.send({err: err});
-        }
-         if(result.length > 0){
-             bcrypt.compare(password, result[0].password, (error, answer) =>{
-                 console.log(answer)
-                 if(answer){
-                    console.log(answer)
-                    console.log(result[0].admin)
-                     const id = result[0].admin
-                     //TODO encrypt if time
-                     const token = jwt.sign({id}, "Test", {
-                         expiresIn: 300,
-                     })
-                     req.session.user = result
-
-                     res.json({auth: true, token: token, result: result})
-                 }else{
-                    res.json({auth: false, message: "Wrong username password combination"}); 
-                 }
-             });
-         } else {
-             res.json({auth: false, message: "no user exists"});
-         }
-    });
+    var hash = null;
+    console.log("here")
+    Axios.get('http://127.0.0.1:5000/admin/login/username='+name).then(resp => {
+        hash = resp.data.slice(15, resp.data.length-3)
+        console.log(hash)
+        if(hash.length> 0){
+            bcrypt.compare(password, hash, (error, answer) =>{
+                console.log(answer)
+                     if(answer){
+                         //TODO encrypt if time
+                         const id = 1;
+                         const token = jwt.sign({id}, "Test", {
+                             expiresIn: 300,
+                         })
+                         console.log(token)
+    
+                         res.json({auth: true, token: token, admin: true});
+                     }else{
+                        res.json({auth: false, message: "Wrong username password combination"}); 
+                     }
+                 });
+             } else {
+                 res.json({auth: false, message: "no user exists"});
+             }
+            })
 
 });
 app.listen(3001);
