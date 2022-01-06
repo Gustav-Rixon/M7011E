@@ -72,31 +72,25 @@ app.post("/register",  async (req, res)=>{
    // console.log(Axios.get('http://nominatim.openstreetmap.org/search.php?street='+address+ '&postalcode='+zip+ '&format=json'))
     await Axios.get('http://nominatim.openstreetmap.org/search.php?street='+address+ '&postalcode='+zip+ '&format=json').then(resp => {
                 exists = resp.data.length;
-            })
+                console.log(resp)
+                console.log (exists)
+                bcrypt.hash(password, saltRounds, (err, hash) =>{
+                    if (err){
+                        console.log(err)
+                    }
+                    if(exists>0){
+                        Axios.post('http://127.0.0.1:5000/register/username='+name+'&password='+hash+'&email='+email+'&address='+address+'&zipcode='+zip+'&prosumer='+prosumer)
+                    }
+                    else{
+                        console.log("address faulty")
+        
+                    }
+                    
+                });
+            }).catch(err => err);
     
     //TODO fixa querry för ny databas
     //const sqlInsert = "INSERT INTO user (name, email, adress, zip, password) VALUES (?,?,?,?,?)";
-    console.log("was here")
-    await Axios.post('http://127.0.0.1:5000/register/username='+name+'&password='+password+'&email='+email+'&address='+address+'&zipcode='+zip+'&prosumer='+prosumer).then(resp0 => {
-        console.log(resp0)
-        exists = resp.data.length;
-        console.log (exists)
-        bcrypt.hash(password, saltRounds, (err, hash) =>{
-            if (err){
-                console.log(err)
-            }
-            if(exists>0){
-                Axios.post('http://127.0.0.1:5000/register/username='+name+'&password='+hash+'&email='+email+'&address='+address+'&zipcode='+zip+'&prosumer='+prosumer).then(resp0 => {
-                    console.log(resp0)
-                })  
-            }
-            else{
-                console.log("address faulty")
-
-            }
-            
-        });
-    })
 
 });
 app.get("/login", (req, res)=> {
