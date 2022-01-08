@@ -1,7 +1,7 @@
-User module
-===========
+Market module
+=============
 
-.. automodule:: User
+.. automodule:: Market
    :members:
    :undoc-members:
    :show-inheritance:

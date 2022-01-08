@@ -4,7 +4,19 @@ from werkzeug.wrappers.response import Response
 
 
 class Consumer:
+    """[summary]
+    """
+
     def __init__(self, id, consumption, closest_station_id, closest_station_distance, power_status):
+        """[summary]
+
+        Args:
+            id ([type]): [description]
+            consumption ([type]): [description]
+            closest_station_id ([type]): [description]
+            closest_station_distance ([type]): [description]
+            power_status ([type]): [description]
+        """
         self._id = id
         self._consumption = consumption
         self._temp = 0
@@ -15,6 +27,16 @@ class Consumer:
 
 class Prosumer(Consumer):
     def __init__(self, id, consumption, closest_station_id, closest_station_distance, power_status, turbine_status):
+        """[summary]
+
+        Args:
+            id ([type]): [description]
+            consumption ([type]): [description]
+            closest_station_id ([type]): [description]
+            closest_station_distance ([type]): [description]
+            power_status ([type]): [description]
+            turbine_status ([type]): [description]
+        """
         super().__init__(id, consumption, closest_station_id,
                          closest_station_distance, power_status)
         self._wind = 0
@@ -26,6 +48,10 @@ class Prosumer(Consumer):
         self._buffert = Buffert(1000, 0)  # TODO
 
     def power_check(self):
+        """[summary]
+            Checks if the buffert content is 0 or not.
+            If buffert is empty then a prosumer gets a blackout
+        """
         self._buffert.buffert_checker()
         if self._buffert.content > 0:
             self._power_status = 1
@@ -34,7 +60,19 @@ class Prosumer(Consumer):
 
 
 class PowerPlant:
+    """[summary]
+    """
+
     def __init__(self, id, production, status, buffert_capacity, buffert_content):
+        """[summary]
+
+        Args:
+            id ([type]): [description]
+            production ([type]): [description]
+            status ([type]): [description]
+            buffert_capacity ([type]): [description]
+            buffert_content ([type]): [description]
+        """
         self._id = id
         self._production = production
         self._status = status
@@ -46,8 +84,10 @@ class Buffert:
         self.capacity = capacity
         self.content = content
 
-    # Sadly you cant have more content then capacity
     def buffert_checker(self):
+        """[summary]
+            Checks so that the buffert content does not exceeds the buffert capacity
+        """
         if self.content > self.capacity:
             self.content = self.capacity
         if self.content == 0:  # TODO TRIGER EVENT BLACKOUT
@@ -55,6 +95,12 @@ class Buffert:
 
 
 def create_house_holds_objects():
+    """[summary]
+        Creates house holds objects from the database
+
+    Returns:
+        [list]: [Two lists. One list of consumers and one list_of_prosumers]
+    """
 
     list_of_consumer = []
     list_of_prosumer = []
@@ -93,6 +139,15 @@ def create_house_holds_objects():
 
 
 def create_power_plants_objects():
+    """[summary]
+        Creates a power plant object from the database
+
+    NOTE
+        The system currently only supports one power plant object
+
+    Returns:
+        [list]: [A list of power plant objects]
+    """
 
     list = []
 
@@ -120,6 +175,12 @@ def create_power_plants_objects():
 
 
 def check_trade(list):
+    """[summary]
+        Checks a list of prosumer objects and checks if they are blockd from trading
+
+    Args:
+        list ([list]): [A list of prosumer objects]
+    """
     for object in list:
         if object._blocked_number_of_cykels == 0:
             object._blocked_status = False
@@ -128,13 +189,15 @@ def check_trade(list):
 
 
 def checktest(consumer_households_in_siumulation, prosumer_households_in_siumulation):
-    """[Checks if a new user needs to be added to the simulation or if a user is removed]
+    """[summary]
+        Checks if a new user needs to be added to the simulation or if a user is removed
 
     Args:
-        current_list ([list]): [a list of all the current households in the simulation]
+        consumer_households_in_siumulation ([list]): [List of current consumers in the simulation]
+        prosumer_households_in_siumulation ([list]): [List of current prosumers in the simulation]
 
     Returns:
-        [type]: [description]
+        [list]: [A new list of current consumers in the simulation and current prosumers in the simulation]
     """
 
     check_trade(prosumer_households_in_siumulation)
@@ -180,6 +243,16 @@ def checktest(consumer_households_in_siumulation, prosumer_households_in_siumula
 
 
 def add_new_user(consumer_households_in_siumulation, prosumer_households_in_siumulation):
+    """[summary]
+        Adds a new user from the database to the simulation.
+
+    Args:
+        consumer_households_in_siumulation ([list]): [List of current consumers in the simulation]
+        prosumer_households_in_siumulation ([list]): [List of current prosumers in the simulation]
+
+    Returns:
+        [list]: [A new list of current consumers in the simulation and current prosumers in the simulation]
+    """
     list3 = consumer_households_in_siumulation + prosumer_households_in_siumulation
     try:
         connection = mysql.connector.connect(host='localhost',
@@ -215,8 +288,16 @@ def add_new_user(consumer_households_in_siumulation, prosumer_households_in_sium
             return consumer_households_in_siumulation, prosumer_households_in_siumulation
 
 
-# TODO REMOVE FROM SIM
 def remove_user_from_database(request, **data):
+    """[summary]
+        Takes on an request and removes that user from the database.
+
+    Args:
+        request ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
     try:
         connection = mysql.connector.connect(host='localhost',
                                              database='m7011e',
@@ -239,6 +320,16 @@ def remove_user_from_database(request, **data):
 
 
 def remove_user_from_simulation(consumer_households_in_siumulation, prosumer_households_in_siumulation):
+    """[summary]
+        Removes a user from the simulation
+
+    Args:
+        consumer_households_in_siumulation ([list]): [List of current consumers in the simulation]
+        prosumer_households_in_siumulation ([list]): [List of current prosumers in the simulation]
+
+    Returns:
+        [list]: [A new list of current consumers in the simulation and current prosumers in the simulation]
+    """
     lista = []  # list of consumers in simulator
     listb = []  # list of prosumers in simulator
     consumer_households_in_siumulation_temp = []  # list of consumers form database
@@ -289,24 +380,22 @@ def remove_user_from_simulation(consumer_households_in_siumulation, prosumer_hou
 
 
 def remove_element(list, remove):
+    """[summary]
+
+    Args:
+        list ([list]): [List of objects]
+        remove ([]): [What element to remove]
+
+    Returns:
+        [list]: [A new list where the element has been removed]
+    """
     for object in list:
         if object._id == remove[0]:
             list.remove(object)
     return list
 
 
-# TODO SOLV ERROR MASSAGE
-# TODO REJECT SAME USERNAME
 def register(request, **data):
-    """[Checks if object id is in list]
-
-    Args:
-        id ([int]): [id to search for]
-        list ([list]): [list of objects to search through]
-
-    Returns:
-        [String]: [1 if inserted, -1 if not inserted]
-    """
     try:
         connection = mysql.connector.connect(host='localhost',
                                              database='m7011e',
@@ -334,6 +423,15 @@ def register(request, **data):
 
 
 def login(request, **data):
+    """[summary]
+        Checks login credentials from the database 
+
+    Args:
+        request ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
     try:
         connection = mysql.connector.connect(host='localhost',
                                              database='m7011e',
@@ -418,14 +516,14 @@ def add_house_hold(username):
 
 
 def search_global_list(id, list):
-    """[Checks if object id is in list]
+    """[summary]
 
     Args:
-        id ([int]): [id to search for]
-        list ([list]): [list of objects to search through]
+        id ([type]): [description]
+        list ([type]): [description]
 
     Returns:
-        [Boolean]: [True if found, false if not found]
+        [type]: [description]
     """
     for object in list:
         if object._id == id:

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Functions module &mdash; M7011E_Project_Grp_DROP_TABLES 2022-01-16 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="RateLimited module" href="RateLimited.html" />
+    <link rel="prev" title="resources" href="resources.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> M7011E_Project_Grp_DROP_TABLES
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="modules.html">Backend</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="resources.html">resources</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Functions module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="RateLimited.html">RateLimited module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="GpsNominatim.html">GpsNominatim module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="GetDataFromSMHIApi.html">GetDataFromSMHIApi module</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">M7011E_Project_Grp_DROP_TABLES</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="resources.html">resources</a> &raquo;</li>
+      <li>Functions module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/Functions.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-Functions">
+<span id="functions-module"></span><h1>Functions module<a class="headerlink" href="#module-Functions" title="Permalink to this headline"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="Functions.calc_electricity_consumption">
+<span class="sig-prename descclassname"><span class="pre">Functions.</span></span><span class="sig-name descname"><span class="pre">calc_electricity_consumption</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">temp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Functions.calc_electricity_consumption" title="Permalink to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>[summary]</dt><dd><p>Calculates the consumtion for a house hold dependning on temprature data.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>temp</strong> (<em>[</em><em>int</em><em>]</em>) – [Temperature data from SMHI that has noice added to it. Temp is in celsius]</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>[consumption in kWh]</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>[int]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Functions.calc_production">
+<span class="sig-prename descclassname"><span class="pre">Functions.</span></span><span class="sig-name descname"><span class="pre">calc_production</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wind</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Functions.calc_production" title="Permalink to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>[summary]</dt><dd><p>Calculates the production for a house hold dependning on wind data.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>wind</strong> (<em>[</em><em>type</em><em>]</em>) – [Wind data from SMHI that has noice added to it. Wind is in m/s]</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>[Production in kWh]</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>[type]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Functions.calc_station">
+<span class="sig-prename descclassname"><span class="pre">Functions.</span></span><span class="sig-name descname"><span class="pre">calc_station</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">address</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zipcode</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Functions.calc_station" title="Permalink to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>[Summary]</dt><dd><p>Calculates the closest station for a household</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This method only returns a smhi weather station</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>address</strong> (<em>[</em><em>String</em><em>]</em>) – [Households address]</p></li>
+<li><p><strong>zipcode</strong> (<em>[</em><em>String</em><em>]</em>) – [Households zipcode]</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>[The closest station and its id]</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>[int,int]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Functions.calc_temp">
+<span class="sig-prename descclassname"><span class="pre">Functions.</span></span><span class="sig-name descname"><span class="pre">calc_temp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Functions.calc_temp" title="Permalink to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>[Summary]</dt><dd><p>Calculates the temperature of a household by taking Weather station data and applying noise depending on disctance</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>station_id</strong> (<em>[</em><em>int</em><em>]</em>) – [Weather stations id]</p></li>
+<li><p><strong>distance</strong> (<em>[</em><em>int</em><em>]</em>) – [Distance between the household and station]</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>[Temperature in celsius]</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>[type]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Functions.calc_wind">
+<span class="sig-prename descclassname"><span class="pre">Functions.</span></span><span class="sig-name descname"><span class="pre">calc_wind</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Functions.calc_wind" title="Permalink to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>[Summary]</dt><dd><p>Calculates the wind speed from smhi data and adds noice to the data</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>station_id</strong> (<em>[</em><em>int</em><em>]</em>) – [Id of the station]</p></li>
+<li><p><strong>distance</strong> (<em>[</em><em>int</em><em>]</em>) – [Distance to the station]</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>[A wind speed]</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>[int]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Functions.check_JWT">
+<span class="sig-prename descclassname"><span class="pre">Functions.</span></span><span class="sig-name descname"><span class="pre">check_JWT</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">token</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Functions.check_JWT" title="Permalink to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>[Summary]</dt><dd><p>Takes a JWT token and checks if the id is the same as the JWT id</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>token</strong> (<em>[</em><em>String</em><em>]</em>) – [JWT token]</p></li>
+<li><p><strong>id</strong> (<em>[</em><em>int</em><em>]</em>) – [id of the requester]</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>[True if its a match, False if not a match]</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>[Boolean]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="resources.html" class="btn btn-neutral float-left" title="resources" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="RateLimited.html" class="btn btn-neutral float-right" title="RateLimited module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Gustav Rixon &amp; Edison Widell Delgado.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

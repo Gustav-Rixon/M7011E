@@ -17,7 +17,9 @@
         <script src="_static/doctools.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Market module" href="Market.html" />
+    <link rel="prev" title="Backend" href="modules.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -36,8 +38,14 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption"><span class="caption-text">Contents:</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">M7011E</a></li>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">Backend</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Lorax module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Market.html">Market module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Simulator.html">Simulator module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="resources.html">resources</a></li>
 </ul>
 
         </div>
@@ -54,6 +62,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="modules.html">Backend</a> &raquo;</li>
       <li>Lorax module</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/Lorax.rst.txt" rel="nofollow"> View page source</a>
@@ -64,14 +73,272 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="lorax-module">
-<h1>Lorax module<a class="headerlink" href="#lorax-module" title="Permalink to this headline"></a></h1>
+  <section id="module-Lorax">
+<span id="lorax-module"></span><h1>Lorax module<a class="headerlink" href="#module-Lorax" title="Permalink to this headline"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="Lorax.Buffert">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">Lorax.</span></span><span class="sig-name descname"><span class="pre">Buffert</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">capacity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">content</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Lorax.Buffert" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Lorax.Buffert.buffert_checker">
+<span class="sig-name descname"><span class="pre">buffert_checker</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Lorax.Buffert.buffert_checker" title="Permalink to this definition"></a></dt>
+<dd><p>[summary]
+Checks so that the buffert content does not exceeds the buffert capacity</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Lorax.Consumer">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">Lorax.</span></span><span class="sig-name descname"><span class="pre">Consumer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">consumption</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">closest_station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">closest_station_distance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">power_status</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Lorax.Consumer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>[summary]</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Lorax.PowerPlant">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">Lorax.</span></span><span class="sig-name descname"><span class="pre">PowerPlant</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">production</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffert_capacity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffert_content</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Lorax.PowerPlant" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>[summary]</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="Lorax.Prosumer">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">Lorax.</span></span><span class="sig-name descname"><span class="pre">Prosumer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">consumption</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">closest_station_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">closest_station_distance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">power_status</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">turbine_status</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Lorax.Prosumer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#Lorax.Consumer" title="Lorax.Consumer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Lorax.Consumer</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Lorax.Prosumer.power_check">
+<span class="sig-name descname"><span class="pre">power_check</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Lorax.Prosumer.power_check" title="Permalink to this definition"></a></dt>
+<dd><p>[summary]
+Checks if the buffert content is 0 or not.
+If buffert is empty then a prosumer gets a blackout</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Lorax.add_house_hold">
+<span class="sig-prename descclassname"><span class="pre">Lorax.</span></span><span class="sig-name descname"><span class="pre">add_house_hold</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">username</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Lorax.add_house_hold" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Lorax.add_new_user">
+<span class="sig-prename descclassname"><span class="pre">Lorax.</span></span><span class="sig-name descname"><span class="pre">add_new_user</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">consumer_households_in_siumulation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prosumer_households_in_siumulation</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Lorax.add_new_user" title="Permalink to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>[summary]</dt><dd><p>Adds a new user from the database to the simulation.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>consumer_households_in_siumulation</strong> (<em>[</em><em>list</em><em>]</em>) – [List of current consumers in the simulation]</p></li>
+<li><p><strong>prosumer_households_in_siumulation</strong> (<em>[</em><em>list</em><em>]</em>) – [List of current prosumers in the simulation]</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>[A new list of current consumers in the simulation and current prosumers in the simulation]</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>[list]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Lorax.admin_login">
+<span class="sig-prename descclassname"><span class="pre">Lorax.</span></span><span class="sig-name descname"><span class="pre">admin_login</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Lorax.admin_login" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Lorax.check_trade">
+<span class="sig-prename descclassname"><span class="pre">Lorax.</span></span><span class="sig-name descname"><span class="pre">check_trade</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Lorax.check_trade" title="Permalink to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>[summary]</dt><dd><p>Checks a list of prosumer objects and checks if they are blockd from trading</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>list</strong> (<em>[</em><em>list</em><em>]</em>) – [A list of prosumer objects]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Lorax.checktest">
+<span class="sig-prename descclassname"><span class="pre">Lorax.</span></span><span class="sig-name descname"><span class="pre">checktest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">consumer_households_in_siumulation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prosumer_households_in_siumulation</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Lorax.checktest" title="Permalink to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>[summary]</dt><dd><p>Checks if a new user needs to be added to the simulation or if a user is removed</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>consumer_households_in_siumulation</strong> (<em>[</em><em>list</em><em>]</em>) – [List of current consumers in the simulation]</p></li>
+<li><p><strong>prosumer_households_in_siumulation</strong> (<em>[</em><em>list</em><em>]</em>) – [List of current prosumers in the simulation]</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>[A new list of current consumers in the simulation and current prosumers in the simulation]</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>[list]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Lorax.create_house_holds_objects">
+<span class="sig-prename descclassname"><span class="pre">Lorax.</span></span><span class="sig-name descname"><span class="pre">create_house_holds_objects</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Lorax.create_house_holds_objects" title="Permalink to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>[summary]</dt><dd><p>Creates house holds objects from the database</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>[Two lists. One list of consumers and one list_of_prosumers]</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>[list]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Lorax.create_power_plants_objects">
+<span class="sig-prename descclassname"><span class="pre">Lorax.</span></span><span class="sig-name descname"><span class="pre">create_power_plants_objects</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Lorax.create_power_plants_objects" title="Permalink to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>[summary]</dt><dd><p>Creates a power plant object from the database</p>
+</dd>
+<dt>NOTE</dt><dd><p>The system currently only supports one power plant object</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>[A list of power plant objects]</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>[list]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Lorax.login">
+<span class="sig-prename descclassname"><span class="pre">Lorax.</span></span><span class="sig-name descname"><span class="pre">login</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Lorax.login" title="Permalink to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>[summary]</dt><dd><p>Checks login credentials from the database</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>request</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>[description]</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>[type]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Lorax.register">
+<span class="sig-prename descclassname"><span class="pre">Lorax.</span></span><span class="sig-name descname"><span class="pre">register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Lorax.register" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Lorax.remove_element">
+<span class="sig-prename descclassname"><span class="pre">Lorax.</span></span><span class="sig-name descname"><span class="pre">remove_element</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Lorax.remove_element" title="Permalink to this definition"></a></dt>
+<dd><p>[summary]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>list</strong> (<em>[</em><em>list</em><em>]</em>) – [List of objects]</p></li>
+<li><p><strong>remove</strong> (<em>[</em><em>]</em>) – [What element to remove]</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>[A new list where the element has been removed]</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>[list]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Lorax.remove_user_from_database">
+<span class="sig-prename descclassname"><span class="pre">Lorax.</span></span><span class="sig-name descname"><span class="pre">remove_user_from_database</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Lorax.remove_user_from_database" title="Permalink to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>[summary]</dt><dd><p>Takes on an request and removes that user from the database.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>request</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>[description]</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>[type]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Lorax.remove_user_from_simulation">
+<span class="sig-prename descclassname"><span class="pre">Lorax.</span></span><span class="sig-name descname"><span class="pre">remove_user_from_simulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">consumer_households_in_siumulation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prosumer_households_in_siumulation</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Lorax.remove_user_from_simulation" title="Permalink to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>[summary]</dt><dd><p>Removes a user from the simulation</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>consumer_households_in_siumulation</strong> (<em>[</em><em>list</em><em>]</em>) – [List of current consumers in the simulation]</p></li>
+<li><p><strong>prosumer_households_in_siumulation</strong> (<em>[</em><em>list</em><em>]</em>) – [List of current prosumers in the simulation]</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>[A new list of current consumers in the simulation and current prosumers in the simulation]</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>[list]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Lorax.search_global_list">
+<span class="sig-prename descclassname"><span class="pre">Lorax.</span></span><span class="sig-name descname"><span class="pre">search_global_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Lorax.search_global_list" title="Permalink to this definition"></a></dt>
+<dd><p>[summary]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
+<li><p><strong>list</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>[description]</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>[type]</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
 
            </div>
           </div>
-          <footer>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="modules.html" class="btn btn-neutral float-left" title="Backend" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Market.html" class="btn btn-neutral float-right" title="Market module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
 
   <hr/>
 

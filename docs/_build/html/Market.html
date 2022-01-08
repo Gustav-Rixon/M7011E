@@ -17,7 +17,9 @@
         <script src="_static/doctools.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Simulator module" href="Simulator.html" />
+    <link rel="prev" title="Lorax module" href="Lorax.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -36,8 +38,14 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption"><span class="caption-text">Contents:</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">M7011E</a></li>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">Backend</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Lorax.html">Lorax module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Market module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Simulator.html">Simulator module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="resources.html">resources</a></li>
 </ul>
 
         </div>
@@ -54,6 +62,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="modules.html">Backend</a> &raquo;</li>
       <li>Market module</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/Market.rst.txt" rel="nofollow"> View page source</a>
@@ -64,14 +73,97 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="market-module">
-<h1>Market module<a class="headerlink" href="#market-module" title="Permalink to this headline"></a></h1>
+  <section id="module-Market">
+<span id="market-module"></span><h1>Market module<a class="headerlink" href="#module-Market" title="Permalink to this headline"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="Market.Market">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">Market.</span></span><span class="sig-name descname"><span class="pre">Market</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">market_size</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Market.Market" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>[summary]
+This module handels market transaction</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Market.Market.buy_from_market">
+<span class="sig-name descname"><span class="pre">buy_from_market</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">amount</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Market.Market.buy_from_market" title="Permalink to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>[summary]</dt><dd><p>This function is called when a user buys from the market.
+The amount is removed from the market objects buffert.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>amount</strong> (<em>[</em><em>int</em><em>]</em>) – [The amount to sell]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Market.Market.calculate_electricity_price">
+<span class="sig-name descname"><span class="pre">calculate_electricity_price</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current_consumption</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_of_users</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_price</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Market.Market.calculate_electricity_price" title="Permalink to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>[summary]</dt><dd><p>Calculates the electricity price of the cycle.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>current_consumption</strong> (<em>[</em><em>int</em><em>]</em>) – [current consumption of the simulation]</p></li>
+<li><p><strong>number_of_users</strong> (<em>[</em><em>int</em><em>]</em>) – [number of users in the simulation]</p></li>
+<li><p><strong>fixed_price</strong> (<em>[</em><em>int</em><em>]</em>) – [fixed price from admin]</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Market.Market.change_market_size">
+<span class="sig-name descname"><span class="pre">change_market_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">amount</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Market.Market.change_market_size" title="Permalink to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>[summary]</dt><dd><p>This function changes the market size of the simulation</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>amount</strong> (<em>[</em><em>int</em><em>]</em>) – [The new size of the market]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Market.Market.send_to_market">
+<span class="sig-name descname"><span class="pre">send_to_market</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">amount</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Market.Market.send_to_market" title="Permalink to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>[summary]</dt><dd><p>This function sends to the market</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>amount</strong> (<em>[</em><em>int</em><em>]</em>) – [amount to add to the market]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Market.Market.update_market">
+<span class="sig-name descname"><span class="pre">update_market</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">amount</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Market.Market.update_market" title="Permalink to this definition"></a></dt>
+<dd><p>[summary]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>amount</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 
 
            </div>
           </div>
-          <footer>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Lorax.html" class="btn btn-neutral float-left" title="Lorax module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Simulator.html" class="btn btn-neutral float-right" title="Simulator module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
 
   <hr/>
 

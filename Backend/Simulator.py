@@ -1,4 +1,3 @@
-import threading
 from time import sleep
 from resources.RateLimited import rate_limited
 from resources.Functions import calc_temp, calc_wind, calc_electricity_consumption, calc_production, check_JWT
@@ -8,7 +7,6 @@ from Market import Market
 from werkzeug.wrappers import Request, Response
 from werkzeug.routing import Map, Rule
 from werkzeug.wsgi import responder
-
 
 global_household_list = []
 global_power_plant_list = []
@@ -71,6 +69,10 @@ class Events:
 
 
 class Simulator:
+    """[summary]
+        This it the main object that hadnels the simulation.
+    """
+
     def __init__(self):
         self._household_list_in_siumulation = []
         self._power_plants = []
@@ -80,14 +82,28 @@ class Simulator:
         self._consumer_households_in_siumulation = []
         self._prosumer_households_in_siumulation = []
 
-    # TODO:SHOULD GET ALL THE HOUSEHOLDS FROM THE DATABASE AND CREATE HOUSEHOLD OBJECTS
-    # kWh
     def setupSim():
+        """[summary]
+            Setups the first batch of house hold objects for the simulation.
+            And the power plant
+
+        Returns:
+            [lists]: [list of consumers, list of prosumer and list of power plants ]
+        """
         list_of_consumer, list_of_prosumer = create_house_holds_objects()
         power_plant_list = create_power_plants_objects()
         return list_of_consumer, list_of_prosumer, power_plant_list
 
     def calc_consumer(list_of_consumer):
+        """[summary]
+            Calcualates how much all the consumers consume.
+
+        Args:
+            list_of_consumer ([list]): [List of consumers in simulation.]
+
+        Returns:
+            [int]: [Total consumption from consumers]
+        """
         total_consumer_consumption = 0
         for consumer in list_of_consumer:
             consumer._temp = calc_temp(
@@ -98,6 +114,15 @@ class Simulator:
         return total_consumer_consumption
 
     def calc_prosumer(list_of_prosumer):
+        """[summary]
+            Calcualates how much all the prosumer consumes and produces.
+
+        Args:
+            list_of_prosumer ([list]): [List of prosumer objects in simulation]
+
+        Returns:
+            [int]: [Total prosumer consumption and total prosumer production]
+        """
         total_prosumer_consumption = 0
         total_prosumer_production = 0
         for prosumer in list_of_prosumer:
@@ -129,13 +154,27 @@ class Simulator:
         return total_prosumer_consumption, total_prosumer_production
 
     def calc_power_plant_production(list_of_power_plants):
+        """[summary]
+            Calculate power plant production.
+
+            NOTE
+            Only one power plant object can be present in the simulation
+
+        Args:
+            list_of_power_plants ([list]): [A list of power plant objects]
+
+        Returns:
+            [int]: [Total power plant production]
+        """
         total_production = 0
         for power_plant in list_of_power_plants:
             total_production += power_plant._production
         return total_production
 
-    # TODO BE ABLE TO ADD NEW USERS TO THE LOOP AND REMOVE THEM
     def run(self):
+        """[summary]
+
+        """
         self._consumer_households_in_siumulation, self._prosumer_households_in_siumulation, self._power_plant = Simulator.setupSim()
         self._simulator_market = Market(1000)
 
@@ -214,6 +253,12 @@ class Simulator:
 # TODO MAKE METHODS ONYL RESPOND IF CORRECT GET/POST IS USED
 # TODO ADD TOKEN FROM FRONTEND
 class SimulatorEndPoints:
+    """[summary]
+        Contains all the API endpoints and their handels theres requests. 
+    """
+
+    def __init__(self) -> None:
+        pass
 
     @rate_limited(1/10, mode='kill')
     def on_change_power_plant_output(request, **data):
@@ -288,6 +333,20 @@ class SimulatorEndPoints:
 
     @responder
     def application(environ, start_response):
+        """[summary]
+            This is API written in werkzeug.
+
+        Endpoints:
+            test 
+
+        Args:
+            environ ([type]): [description]
+            start_response ([type]): [description]
+
+        Returns:
+            [type]: [description]
+        """
+
         url_map = Map([
             Rule(
                 '/admin/tools/change_power/id=<int:id>&power=<int:power>', endpoint='change_power'),
@@ -330,14 +389,3 @@ class SimulatorEndPoints:
         urls = url_map.bind_to_environ(environ)
         return urls.dispatch(lambda e, v: views[e](request, **v),
                              catch_http_exceptions=True)
-
-
-if __name__ == "__main__":
-    sim = Simulator()
-    # smhi = get_data_from_station()
-
-    x = threading.Thread(target=sim.run)
-    x.daemon = True
-    x.start()
-    from werkzeug.serving import run_simple
-    run_simple('127.0.0.1', 5000, SimulatorEndPoints.application)

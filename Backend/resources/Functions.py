@@ -1,15 +1,13 @@
-from multiprocessing import Process, Pipe
 from math import floor
-from flask.scaffold import F
-from .GpsNominatim import *
+from GpsNominatim import *
 import numpy as np
 import statistics
-from multiprocessing import Process, Queue, Pipe
 import jwt
 
 
 def calc_wind(station_id, distance):
-    """[Calculates the wind speed from smhi data and adds noice to the data]
+    """[Summary]
+        Calculates the wind speed from smhi data and adds noice to the data
 
     Args:
         station_id ([int]): [Id of the station]
@@ -31,7 +29,8 @@ def calc_wind(station_id, distance):
 
 
 def calc_station(address, zipcode):
-    """[Calculates the closest station for a household]
+    """[Summary]
+        Calculates the closest station for a household
 
     .. NOTE::
 
@@ -52,7 +51,8 @@ def calc_station(address, zipcode):
 
 
 def calc_temp(station_id, distance):
-    """[Calculates the temperature of a household by taking Weather station data and applying noise depending on disctance]
+    """[Summary]
+        Calculates the temperature of a household by taking Weather station data and applying noise depending on disctance
 
     Args:
         station_id ([int]): [Weather stations id]
@@ -74,6 +74,15 @@ def calc_temp(station_id, distance):
 
 # https://www.energimarknadsbyran.se/el/dina-avtal-och-kostnader/elkostnader/elforbrukning/normal-elforbrukning-och-elkostnad-for-villa/
 def calc_electricity_consumption(temp):
+    """[summary]
+        Calculates the consumtion for a house hold dependning on temprature data.
+
+    Args:
+        temp ([int]): [Temperature data from SMHI that has noice added to it. Temp is in celsius]
+
+    Returns:
+        [int]: [consumption in kWh]
+    """
     consumption = statistics.median(np.random.normal(
         0, 1, 100))
     return 50 + (consumption-temp)
@@ -81,23 +90,29 @@ def calc_electricity_consumption(temp):
 
 # TODO DO MATH
 def calc_production(wind):
+    """[summary]
+         Calculates the production for a house hold dependning on wind data.
+
+    Args:
+        wind ([type]): [Wind data from SMHI that has noice added to it. Wind is in m/s]
+
+    Returns:
+        [type]: [Production in kWh]
+    """
     return wind * 10000
 
 
-# ISSU returns the same value?
-def send_info_temp(child_conn, closest_station_id, closest_station_distance):
-    data = calc_temp(closest_station_id, closest_station_distance)
-    child_conn.send(data)
-    child_conn.close()
-
-
-def send_info_wind(child_conn, closest_station_id, closest_station_distance):
-    data = calc_wind(97200, 4500)
-    child_conn.send(data)
-    child_conn.close()
-
-
 def check_JWT(token, id):
+    """[Summary]
+        Takes a JWT token and checks if the id is the same as the JWT id 
+
+    Args:
+        token ([String]): [JWT token]
+        id ([int]): [id of the requester]
+
+    Returns:
+        [Boolean]: [True if its a match, False if not a match]
+    """
     test = jwt.decode(token,
                       "Test", algorithms=["HS256"])
 

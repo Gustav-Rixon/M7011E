@@ -1,7 +1,0 @@
-mp1 module
-==========
-
-.. automodule:: mp1
-   :members:
-   :undoc-members:
-   :show-inheritance:

@@ -1,7 +1,8 @@
-temp module
-===========
+Lorax module
+============
 
-.. automodule:: temp
+.. automodule:: Lorax
    :members:
    :undoc-members:
    :show-inheritance:
+   
