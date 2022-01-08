@@ -1,0 +1,7 @@
+Werkzeug module
+===============
+
+.. automodule:: Werkzeug
+   :members:
+   :undoc-members:
+   :show-inheritance:

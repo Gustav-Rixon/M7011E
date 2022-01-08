@@ -1,0 +1,37 @@
+resources package
+=================
+
+Submodules
+----------
+
+resources.GetDataFromExApi module
+---------------------------------
+
+.. automodule:: resources.GetDataFromExApi
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+resources.GpsTest module
+------------------------
+
+.. automodule:: resources.GpsTest
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+resources.Rate\_limited module
+------------------------------
+
+.. automodule:: resources.Rate_limited
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: resources
+   :members:
+   :undoc-members:
+   :show-inheritance:

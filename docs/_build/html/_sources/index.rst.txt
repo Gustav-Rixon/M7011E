@@ -10,7 +10,7 @@ Welcome to M7011E_Project_Grp_DROP_TABLES's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-
+   modules
 
 Indices and tables
 ==================
