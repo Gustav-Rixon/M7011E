@@ -8,14 +8,14 @@ from multiprocessing import Process, Queue, Pipe
 
 
 def calc_wind(station_id, distance):
-    """[summary]
+    """[Calculates the wind speed from smhi data and adds noice to the data]
 
     Args:
-        station_id ([type]): [description]
-        distance ([type]): [description]
+        station_id ([int]): [Id of the station]
+        distance ([int]): [Distance to the station]
 
     Returns:
-        [type]: [description]
+        [int]: [A wind speed]
     """
     wind = get_wind(station_id)
 
@@ -29,9 +29,20 @@ def calc_wind(station_id, distance):
     return abs(wind)
 
 
-# Calculates the closest station and returns its id and distans
-# TODO VAR FÖR KAN DEN INTE TA EMOT ÅÄÖ NU???????? FULL LÖSNING ÅÄ = A; Ö = O
 def calc_station(address, zipcode):
+    """[Calculates the closest station for a household]
+
+    .. NOTE::
+
+        This method only returns a smhi weather station
+
+    Args:
+        address ([String]): [Households address]
+        zipcode ([String]): [Households zipcode]
+
+    Returns:
+        [int,int]: [The closest station and its id]
+    """
     data = json.loads(get_data(address, zipcode))
     lon = float(data[0]['lon'])
     lat = float(data[0]['lat'])
@@ -40,7 +51,15 @@ def calc_station(address, zipcode):
 
 
 def calc_temp(station_id, distance):
-    # take the temp data from SMHI and apply noice depending and distance
+    """[Calculates the temperature of a household by taking Weather station data and applying noise depending on disctance]
+
+    Args:
+        station_id ([int]): [Weather stations id]
+        distance ([int]): [Distance between the household and station]
+
+    Returns:
+        [type]: [Temperature in celsius]
+    """
 
     temp = get_temp(station_id)
     if (distance > 3000):

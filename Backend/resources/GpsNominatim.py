@@ -1,16 +1,18 @@
-from typing import Pattern
-from math import cos, nan, sqrt, pi
+from math import cos, sqrt, pi
 import requests
-import re
 import json
 
-# TODO
-# ADD USER INPUT
 
-
-# Should ONLY be called at user creasion/moving
-# TODO RENAME
 def get_data(address, postalCode):
+    """[summary]
+
+    Args:
+        address ([type]): [description]
+        postalCode ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
     print("*****************************YOU DID A REQUEIST*****************************")
     data = requests.get(
         f"https://nominatim.openstreetmap.org/search.php?street={address}&postalcode={postalCode}&format=jsonv2")._content
@@ -18,28 +20,32 @@ def get_data(address, postalCode):
 
 
 def get_close(lon, lat):
-    # Get closest station and the distans between the points
+    """[summary]
+
+    Args:
+        lon ([type]): [description]
+        lat ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
     f = open('data.json',)
     data = json.load(f)
-
     closestStation = None
     currentD = 10000000000  # REMOVE
 
     for p in data['station']:
         latTMP = p['latitude']
         lonTMP = p['longitude']
-
         d = distance(lon, lat, lonTMP, latTMP)
 
         if (d < currentD):
             currentD = d
             closestStation = p['key']
-
     return closestStation, currentD
 
 
 def distance(lon1, lat1, lon2, lat2):
-    # Returns the distans betwen two points
     R = 6371000  # radius of the Earth in m
     x = (lon2 - lon1) * cos(0.5*(lat2+lat1))
     y = (lat2 - lat1)
@@ -47,7 +53,6 @@ def distance(lon1, lat1, lon2, lat2):
 
 
 def get_wind(key):
-    # Thunderfury blessed blade of the windseeker
     f = open('dataWind.json',)
     data = json.load(f)
     for p in data['station']:
@@ -56,13 +61,8 @@ def get_wind(key):
 
 
 def get_temp(key):
-    # By fire be purged
     f = open('dataTemp.json',)
     data = json.load(f)
     for p in data['station']:
         if (key == int(p['key'])):
             return p['value'][0]['value']
-
-
-#print('wind ' + get_wind(int(get_close(lon, lat)[0])) + ' m/s')
-#print('temp ' + get_temp(int(get_close(lon, lat)[0])) + ' c')
