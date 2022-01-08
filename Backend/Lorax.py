@@ -14,7 +14,7 @@ class Consumer:
         self._temp = 0
         self._closest_station_id = closest_station_id
         self._closest_station_distance = closest_station_distance
-        self._power_status = 1
+        self._power_status = 0
 
 
 class Prosumer(Consumer):
@@ -30,7 +30,7 @@ class Prosumer(Consumer):
         self._production = 0
         self._blocked_status = False
         self._blocked_number_of_cykels = 0
-        self._ratio_to_market = 0.5  # Determents how much is sent to the market default is 50%
+        self._ratio_to_market = 0.0  # Determents how much is sent to the market default is 0%
         self._buffert = Buffert(1000, 0)  # TODO
 
     def power_check(self):

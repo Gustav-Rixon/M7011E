@@ -128,9 +128,9 @@ class Simulator:
             if prosumer._production > prosumer._consumption:  # Only send to buffert when condison is meet
                 # TODO In case of excessive production, Prosumer should be able to control the ratio of how much should be sold to the market and how much should be sent to the buffer
                 prosumer._buffert.content += (prosumer._production -
-                                              prosumer._consumption)*prosumer._ratio_to_market
+                                              prosumer._consumption)*(1-prosumer._ratio_to_market)
                 global_market.market_buffert.content = (prosumer._production -
-                                                        prosumer._consumption)*(1-prosumer._ratio_to_market)
+                                                        prosumer._consumption)*prosumer._ratio_to_market
 
             if prosumer._consumption > prosumer._production:  # TODO REMOVE UNDERSKOTT FRÅN BUFFERT
                 prosumer._buffert.content -= abs(prosumer._production -
@@ -185,14 +185,6 @@ class Simulator:
             print("RUNNING")
             self._consumer_households_in_siumulation, self._prosumer_households_in_siumulation = checktest(self._consumer_households_in_siumulation,
                                                                                                            self._prosumer_households_in_siumulation)
-            # global_household_list = self._consumer_households_in_siumulation + \
-            #    self._prosumer_households_in_siumulation
-            # TODO HAVE A LIST OR INSTAND ACTION
-            # for event in global_event_list:
-            #    if len(global_event_list) > 0:
-            #        event()  # pre defined varibels pls
-            #        global_event_list.pop(0)
-
             simulator_consumption, simulator_production = Simulator.calc_prosumer(
                 self._prosumer_households_in_siumulation)
 
@@ -204,8 +196,6 @@ class Simulator:
 
             market_status = self._simulator_market.update_market(
                 simulator_production-simulator_consumption)
-
-            #################################################
 
             if self._simulator_market.market_buffert.content == 0:
                 Events.blackout_whole_network()
@@ -221,8 +211,6 @@ class Simulator:
                 object.power_check()
                 print(
                     f"PROSUMER id:{object._id} status:{object._power_status} buffert:{object._buffert.content} consumption:{object._consumption} production:{object._production}")
-
-            #################################################
 
             print(f"markut status {market_status}")
 
@@ -337,6 +325,18 @@ class SimulatorEndPoints:
             return Response(contents, content_type="application/json")
         return Response("Wrong request method")
 
+    def change_ratio_to_market(request, **data):
+        if request.method == ('POST'):
+            if check_JWT(data.get("token"), data.get('id')):
+                global global_household_list
+                for house_hold in global_household_list:
+                    if house_hold._id == data.get('id') and house_hold._buffert.content > 0:
+                        house_hold._ratio_to_market = data.get('amount')
+                        return Response(f"Sending {data.get('amount')*100}% to market")
+                return Response("User not found or not alode to change buffert")
+            return Response("Unauthorised")
+        return Response("Wrong request method")
+
     @responder
     def application(environ, start_response):
         """[summary]
@@ -370,6 +370,8 @@ class SimulatorEndPoints:
                 '/sell/house_hold/prosumer/house_hold_id=<int:id>&amount=<int:amount>', endpoint='sell'),
             Rule('/data/house_hold=<int:id>&token=<string:token>',
                  endpoint='get_house_hold_data'),
+            Rule(
+                '/change_buffert/house_hold=<int:id>&amount=<int:amount>&token=<string:token>', endpoint="change_buffert_to_market"),
             Rule('/data/get_market_data', endpoint='get_market_data'),
             Rule(
                 '/register/username=<string:username>&password=<string:password>&email=<string:email>&address=<string:address>&zipcode=<string:zipcode>&prosumer=<int:prosumer>', endpoint='register'),
@@ -390,7 +392,8 @@ class SimulatorEndPoints:
                  'remove_user': remove_user_from_database,
                  'test2': remove_user_from_simulation,
                  'block_user': SimulatorEndPoints.block_user,
-                 'get_market_data': SimulatorEndPoints.get_market_info
+                 'get_market_data': SimulatorEndPoints.get_market_info,
+                 'change_buffert_to_market': SimulatorEndPoints.change_ratio_to_market
                  }
 
         request = Request(environ)
