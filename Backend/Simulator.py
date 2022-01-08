@@ -319,7 +319,7 @@ class SimulatorEndPoints:
             if check_JWT(data.get("token"), data.get('id')):
                 for house_hold in global_household_list:
                     if house_hold._id == data.get('id'):
-                        data = {house_hold._id: [{"wind": house_hold._wind, "temp": house_hold._temp,
+                        data = {house_hold._id: [{"wind": house_hold._wind, "temp": house_hold._temp, "production": house_hold._production, "consumption": house_hold._consumption,
                                                   "buffert_content": house_hold._buffert.content, "buffert_capacity": house_hold._buffert.capacity}]}
                         contents = json.dumps(data, sort_keys=True)
                         return Response(contents, content_type="application/json")
@@ -335,7 +335,6 @@ class SimulatorEndPoints:
                                      "market_content": global_market.market_buffert.content, "market_price": global_market.market_price}]}
             contents = json.dumps(data, sort_keys=True)
             return Response(contents, content_type="application/json")
-
         return Response("Wrong request method")
 
     @responder
