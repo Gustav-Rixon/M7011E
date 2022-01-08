@@ -1,9 +1,10 @@
+import json
 from time import sleep
-from resources.RateLimited import rate_limited
-from resources.Functions import calc_temp, calc_wind, calc_electricity_consumption, calc_production, check_JWT
+from Backend.resources.RateLimited import rate_limited
+from Backend.resources.Functions import calc_temp, calc_wind, calc_electricity_consumption, calc_production, check_JWT
 from werkzeug.wrappers import Request, Response
-from Lorax import create_house_holds_objects, create_power_plants_objects, register, login, add_house_hold, admin_login, checktest, remove_user_from_database, remove_user_from_simulation
-from Market import Market
+from Backend.Lorax import create_house_holds_objects, create_power_plants_objects, register, login, add_house_hold, admin_login, checktest, remove_user_from_database, remove_user_from_simulation
+from Backend.Market import Market
 from werkzeug.wrappers import Request, Response
 from werkzeug.routing import Map, Rule
 from werkzeug.wsgi import responder
@@ -52,17 +53,6 @@ class Events:
 
     # event id 4 - blackout
     def remove_blackout():
-        global global_household_list
-        for household in global_household_list:
-            household._power_status = 1
-
-    # event id 5
-    def remove_participant_from_simulation():
-        global global_household_list
-        for household in global_household_list:
-            household._power_status = 1
-
-    def remove_participant():
         global global_household_list
         for household in global_household_list:
             household._power_status = 1
@@ -254,11 +244,8 @@ class Simulator:
 # TODO ADD TOKEN FROM FRONTEND
 class SimulatorEndPoints:
     """[summary]
-        Contains all the API endpoints and their handels theres requests. 
+        Contains all the API endpoints and their handels theres requests.
     """
-
-    def __init__(self) -> None:
-        pass
 
     @rate_limited(1/10, mode='kill')
     def on_change_power_plant_output(request, **data):
@@ -293,18 +280,6 @@ class SimulatorEndPoints:
         Market.change_market_size(global_market, data.get('size'))
         return Response(f"Changning market size to {data.get('size')} hamsters insted")
 
-    def get_house_hold_consumption(request, **data):
-        global global_household_list
-
-        if check_JWT(data.get("token"), data.get('id')):
-            for house_hold in global_household_list:
-                if house_hold._id == data.get('id'):
-                    return Response(str(house_hold._consumption))
-
-            return Response("do not finns")
-        else:
-            return Response("Unauthorised")
-
     def block_user(request, **data):
         global global_household_list
         cycle = data.get('cycle')
@@ -331,13 +306,45 @@ class SimulatorEndPoints:
                 house_hold._blocked_status = True
                 return Response(f"user{id} blocked for {cycle} cycles")
 
+    def get_house_hold_data(request, **data):
+        """[summary]
+        Args:
+            request ([type]): [description]
+
+        Returns:
+            [type]: [description]
+        """
+        if request.method == ('GET'):
+            global global_household_list
+            if check_JWT(data.get("token"), data.get('id')):
+                for house_hold in global_household_list:
+                    if house_hold._id == data.get('id'):
+                        data = {house_hold._id: [{"wind": house_hold._wind, "temp": house_hold._temp,
+                                                  "buffert_content": house_hold._buffert.content, "buffert_capacity": house_hold._buffert.capacity}]}
+                        contents = json.dumps(data, sort_keys=True)
+                        return Response(contents, content_type="application/json")
+                return Response("House hold not found")
+            else:
+                return Response("Unauthorised")
+        return Response("Wrong request method")
+
+    def get_market_info(request, **data):
+        if request.method == ('GET'):
+            global global_market
+            data = {"Market Info": [{"market_size": global_market.market_buffert.capacity,
+                                     "market_content": global_market.market_buffert.content, "market_price": global_market.market_price}]}
+            contents = json.dumps(data, sort_keys=True)
+            return Response(contents, content_type="application/json")
+
+        return Response("Wrong request method")
+
     @responder
     def application(environ, start_response):
         """[summary]
             This is API written in werkzeug.
 
         Endpoints:
-            test 
+            test
 
         Args:
             environ ([type]): [description]
@@ -350,39 +357,41 @@ class SimulatorEndPoints:
         url_map = Map([
             Rule(
                 '/admin/tools/change_power/id=<int:id>&power=<int:power>', endpoint='change_power'),
-            Rule(
-                '/buy/house_hold/prosumer/house_hold=<int:id>&amount=<int:amount>', endpoint='buy'),
-            Rule(
-                '/sell/house_hold/prosumer/house_hold_id=<int:id>&amount=<int:amount>', endpoint='sell'),
+            Rule('/admin/tools/block_user_from_trade/house_hold_id=<int:id>&number_of_cycle=<int:cycle>',
+                 endpoint='block_user'),
             Rule('/admin/tools/change_market_size/size=<int:size>',
                  endpoint="change_market_size"),
-            Rule('/DATA/house_hold/consumption/house_hold=<int:id>&token=<string:token>',
-                 endpoint='get_house_hold_consumption'),
-            Rule(
-                '/register/username=<string:username>&password=<string:password>&email=<string:email>&address=<string:address>&zipcode=<string:zipcode>&prosumer=<int:prosumer>', endpoint='register'),
-            Rule('/login/username=<string:username>', endpoint='login'),
-            Rule('/test/username=<string:username>', endpoint='test'),
             Rule('/admin/login/username=<string:username>',
                  endpoint='admin_login'),
             Rule('/admin/remove_user/user_id=<int:user_id>',
                  endpoint='remove_user'),
-            Rule('/test', endpoint='test2'),
-            Rule('/admin/tools/block_user_from_trade/house_hold_id=<int:id>&number_of_cycle=<int:cycle>',
-                 endpoint='block_user')
+            Rule(
+                '/buy/house_hold/prosumer/house_hold=<int:id>&amount=<int:amount>', endpoint='buy'),
+            Rule(
+                '/sell/house_hold/prosumer/house_hold_id=<int:id>&amount=<int:amount>', endpoint='sell'),
+            Rule('/data/house_hold=<int:id>&token=<string:token>',
+                 endpoint='get_house_hold_data'),
+            Rule('/data/get_market_data', endpoint='get_market_data'),
+            Rule(
+                '/register/username=<string:username>&password=<string:password>&email=<string:email>&address=<string:address>&zipcode=<string:zipcode>&prosumer=<int:prosumer>', endpoint='register'),
+            Rule('/login/username=<string:username>', endpoint='login'),
+            Rule('/test/username=<string:username>', endpoint='test'),
+            Rule('/test', endpoint='test2')
         ])
 
         views = {'change_power': SimulatorEndPoints.on_change_power_plant_output,
                  'buy': SimulatorEndPoints.buy,
                  'sell': SimulatorEndPoints.sell,
                  'change_market_size': SimulatorEndPoints.change_market_size,
-                 'get_house_hold_consumption': SimulatorEndPoints.get_house_hold_consumption,
+                 'get_house_hold_data': SimulatorEndPoints.get_house_hold_data,
                  'register': register,
                  'login': login,
                  'test': add_house_hold,
                  'admin_login': admin_login,
                  'remove_user': remove_user_from_database,
                  'test2': remove_user_from_simulation,
-                 'block_user': SimulatorEndPoints.block_user
+                 'block_user': SimulatorEndPoints.block_user,
+                 'get_market_data': SimulatorEndPoints.get_market_info
                  }
 
         request = Request(environ)

@@ -1,5 +1,5 @@
 from math import floor
-from GpsNominatim import *
+from Backend.resources.GpsNominatim import *
 import numpy as np
 import statistics
 import jwt

@@ -1,4 +1,4 @@
-from Lorax import Buffert
+from Backend.Lorax import Buffert
 
 
 class Market:

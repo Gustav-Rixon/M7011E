@@ -1,6 +1,7 @@
 import mysql.connector
 from mysql.connector import Error
 from werkzeug.wrappers.response import Response
+from Backend.resources.Functions import calc_station
 
 
 class Consumer:
@@ -8,15 +9,6 @@ class Consumer:
     """
 
     def __init__(self, id, consumption, closest_station_id, closest_station_distance, power_status):
-        """[summary]
-
-        Args:
-            id ([type]): [description]
-            consumption ([type]): [description]
-            closest_station_id ([type]): [description]
-            closest_station_distance ([type]): [description]
-            power_status ([type]): [description]
-        """
         self._id = id
         self._consumption = consumption
         self._temp = 0
@@ -26,19 +18,13 @@ class Consumer:
 
 
 class Prosumer(Consumer):
-    def __init__(self, id, consumption, closest_station_id, closest_station_distance, power_status, turbine_status):
-        """[summary]
+    """[summary]
+    """
 
-        Args:
-            id ([type]): [description]
-            consumption ([type]): [description]
-            closest_station_id ([type]): [description]
-            closest_station_distance ([type]): [description]
-            power_status ([type]): [description]
-            turbine_status ([type]): [description]
-        """
+    def __init__(self, id, consumption, closest_station_id, closest_station_distance, power_status, turbine_status):
         super().__init__(id, consumption, closest_station_id,
                          closest_station_distance, power_status)
+
         self._wind = 0
         self._turbine_status = turbine_status
         self._production = 0
@@ -64,15 +50,6 @@ class PowerPlant:
     """
 
     def __init__(self, id, production, status, buffert_capacity, buffert_content):
-        """[summary]
-
-        Args:
-            id ([type]): [description]
-            production ([type]): [description]
-            status ([type]): [description]
-            buffert_capacity ([type]): [description]
-            buffert_content ([type]): [description]
-        """
         self._id = id
         self._production = production
         self._status = status
@@ -80,6 +57,9 @@ class PowerPlant:
 
 
 class Buffert:
+    """[summary]
+    """
+
     def __init__(self, capacity, content):
         self.capacity = capacity
         self.content = content
@@ -496,7 +476,7 @@ def add_house_hold(username):
         records = cursor.fetchall()
 
         # Get GPS FOR ADDRESS
-        closest_station_id, closest_station = mp1.calc_station(
+        closest_station_id, closest_station = calc_station(
             records[0]['address'], records[0]['zipcode'])
 
         sql = """INSERT INTO house_hold (closest_station_id, distans_to_station, user_user_id, prosumer) VALUES (%s, %s, %s, %s)"""
