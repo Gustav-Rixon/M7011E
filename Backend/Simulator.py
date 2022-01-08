@@ -1,7 +1,7 @@
 import threading
 from time import sleep
 from resources.RateLimited import rate_limited
-from mp1 import calc_temp, calc_wind, calc_electricity_consumption, calc_production
+from resources.Functions import calc_temp, calc_wind, calc_electricity_consumption, calc_production, check_JWT
 from werkzeug.wrappers import Request, Response
 from Lorax import create_house_holds_objects, create_power_plants_objects, register, login, add_house_hold, admin_login, checktest, remove_user_from_database, remove_user_from_simulation
 from Market import Market
@@ -250,11 +250,15 @@ class SimulatorEndPoints:
 
     def get_house_hold_consumption(request, **data):
         global global_household_list
-        for house_hold in global_household_list:
-            if house_hold._id == data.get('id'):
-                return Response(str(house_hold.consumption))
-            else:
-                return Response("do not finns")
+
+        if check_JWT(data.get("token"), data.get('id')):
+            for house_hold in global_household_list:
+                if house_hold._id == data.get('id'):
+                    return Response(str(house_hold._consumption))
+
+            return Response("do not finns")
+        else:
+            return Response("Unauthorised")
 
     def block_user(request, **data):
         global global_household_list
@@ -293,7 +297,7 @@ class SimulatorEndPoints:
                 '/sell/house_hold/prosumer/house_hold_id=<int:id>&amount=<int:amount>', endpoint='sell'),
             Rule('/admin/tools/change_market_size/size=<int:size>',
                  endpoint="change_market_size"),
-            Rule('/DATA/house_hold/consumption/house_hold=<int:id>',
+            Rule('/DATA/house_hold/consumption/house_hold=<int:id>&token=<string:token>',
                  endpoint='get_house_hold_consumption'),
             Rule(
                 '/register/username=<string:username>&password=<string:password>&email=<string:email>&address=<string:address>&zipcode=<string:zipcode>&prosumer=<int:prosumer>', endpoint='register'),

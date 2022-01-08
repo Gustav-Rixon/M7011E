@@ -2,9 +2,8 @@ import time
 import threading
 from functools import wraps
 
+
 # https://gist.github.com/gregburek/1441055
-
-
 def rate_limited(max_per_second, mode='wait', delay_first_call=False):
     """
     Decorator that make functions not be called faster than

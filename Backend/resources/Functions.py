@@ -1,10 +1,11 @@
 from multiprocessing import Process, Pipe
 from math import floor
 from flask.scaffold import F
-from resources.GpsNominatim import *
+from .GpsNominatim import *
 import numpy as np
 import statistics
 from multiprocessing import Process, Queue, Pipe
+import jwt
 
 
 def calc_wind(station_id, distance):
@@ -96,4 +97,11 @@ def send_info_wind(child_conn, closest_station_id, closest_station_distance):
     child_conn.close()
 
 
-#print(calc_station("strandvägen 5", "104 40"))
+def check_JWT(token, id):
+    test = jwt.decode(token,
+                      "Test", algorithms=["HS256"])
+
+    if str(id) == test.get("id"):
+        return True
+    else:
+        return False

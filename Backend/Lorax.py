@@ -1,7 +1,6 @@
 import mysql.connector
 from mysql.connector import Error
 from werkzeug.wrappers.response import Response
-import mp1
 
 
 class Consumer:

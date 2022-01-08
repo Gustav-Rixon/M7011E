@@ -53,7 +53,7 @@ def distance(lon1, lat1, lon2, lat2):
 
 
 def get_wind(key):
-    f = open('dataWind.json',)
+    f = open('data/dataWind.json',)
     data = json.load(f)
     for p in data['station']:
         if (key == int(p['key'])):
@@ -61,7 +61,7 @@ def get_wind(key):
 
 
 def get_temp(key):
-    f = open('dataTemp.json',)
+    f = open('data/dataTemp.json',)
     data = json.load(f)
     for p in data['station']:
         if (key == int(p['key'])):
