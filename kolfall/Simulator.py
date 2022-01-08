@@ -234,6 +234,8 @@ class SimulatorEndPoints:
         global global_market
         for house_hold in global_household_list:
             if house_hold._id == data.get('id'):
+                if house_hold._blocked_status == True and house_hold._blocked_number_of_cykels > 0:
+                    return Response(f"FAILD YOU ARE BLOKED AND cant sell for {house_hold._blocked_number_of_cykels}")
                 if data.get('amount') < house_hold._buffert.content:
                     house_hold._buffert.content -= data.get('amount')
                     Market.send_to_market(global_market, data.get('amount'))
@@ -254,6 +256,32 @@ class SimulatorEndPoints:
             else:
                 return Response("do not finns")
 
+    def block_user(request, **data):
+        global global_household_list
+        cycle = data.get('cycle')
+        id = data.get('id')
+        if cycle <= 0:
+            return Response("You need a pos int!")
+
+        for house_hold in global_household_list:
+            if house_hold._id == id:
+                house_hold._blocked_number_of_cykels = cycle
+                house_hold._blocked_status = True
+                return Response(f"user{id} blocked for {cycle} cycles")
+
+    def remove_block(request, **data):
+        global global_household_list
+        cycle = data.get('cycle')
+        id = data.get('id')
+        if cycle <= 0:
+            return Response("You need a pos int!")
+
+        for house_hold in global_household_list:
+            if house_hold._id == id:
+                house_hold._blocked_number_of_cykels = cycle
+                house_hold._blocked_status = True
+                return Response(f"user{id} blocked for {cycle} cycles")
+
     @responder
     def application(environ, start_response):
         url_map = Map([
@@ -262,7 +290,7 @@ class SimulatorEndPoints:
             Rule(
                 '/buy/house_hold/prosumer/house_hold=<int:id>&amount=<int:amount>', endpoint='buy'),
             Rule(
-                '/sell/house_hold/prosumer/house_hold=<int:id>&amount=<int:amount>', endpoint='sell'),
+                '/sell/house_hold/prosumer/house_hold_id=<int:id>&amount=<int:amount>', endpoint='sell'),
             Rule('/admin/tools/change_market_size/size=<int:size>',
                  endpoint="change_market_size"),
             Rule('/DATA/house_hold/consumption/house_hold=<int:id>',
@@ -275,7 +303,9 @@ class SimulatorEndPoints:
                  endpoint='admin_login'),
             Rule('/admin/remove_user/user_id=<int:user_id>',
                  endpoint='remove_user'),
-            Rule('/test', endpoint='test2')
+            Rule('/test', endpoint='test2'),
+            Rule('/admin/tools/block_user_from_trade/house_hold_id=<int:id>&number_of_cycle=<int:cycle>',
+                 endpoint='block_user')
         ])
 
         views = {'change_power': SimulatorEndPoints.on_change_power_plant_output,
@@ -288,7 +318,9 @@ class SimulatorEndPoints:
                  'test': add_house_hold,
                  'admin_login': admin_login,
                  'remove_user': remove_user_from_database,
-                 'test2': remove_user_from_simulation}
+                 'test2': remove_user_from_simulation,
+                 'block_user': SimulatorEndPoints.block_user
+                 }
 
         request = Request(environ)
         urls = url_map.bind_to_environ(environ)

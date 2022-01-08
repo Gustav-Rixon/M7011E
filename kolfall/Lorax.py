@@ -23,6 +23,8 @@ class Prosumer(Consumer):
         self._wind = 0
         self._turbine_status = turbine_status
         self._production = 0
+        self._blocked_status = False
+        self._blocked_number_of_cykels = 0
         self._ratio_to_market = 0.5  # Determents how much is sent to the market default is 50%
         self._buffert = Buffert(1000, 0)  # TODO
 
@@ -120,6 +122,14 @@ def create_power_plants_objects():
     return list
 
 
+def check_trade(list):
+    for object in list:
+        if object._blocked_number_of_cykels == 0:
+            object._blocked_status = False
+        if object._blocked_status == True and object._blocked_number_of_cykels > 0:
+            object._blocked_number_of_cykels -= 1
+
+
 def checktest(consumer_households_in_siumulation, prosumer_households_in_siumulation):
     """[Checks if a new user needs to be added to the simulation or if a user is removed]
 
@@ -129,6 +139,9 @@ def checktest(consumer_households_in_siumulation, prosumer_households_in_siumula
     Returns:
         [type]: [description]
     """
+
+    check_trade(prosumer_households_in_siumulation)
+
     count = 0
     check = len(consumer_households_in_siumulation +
                 prosumer_households_in_siumulation)
@@ -284,10 +297,9 @@ def remove_element(list, remove):
             list.remove(object)
     return list
 
+
 # TODO SOLV ERROR MASSAGE
 # TODO REJECT SAME USERNAME
-
-
 def register(request, **data):
     """[Checks if object id is in list]
 
