@@ -1,6 +1,7 @@
 from math import cos, sqrt, pi
 import requests
 import json
+import pandas as pd
 
 
 def get_data(address, postalCode):
@@ -29,7 +30,7 @@ def get_close(lon, lat):
     Returns:
         [type]: [description]
     """
-    f = open('Backend/data/data.json',)
+    f = open('Backend/data/data.json', errors='ignore')
     data = json.load(f)
     closestStation = None
     currentD = 10000000000  # REMOVE
@@ -53,7 +54,15 @@ def distance(lon1, lat1, lon2, lat2):
 
 
 def get_wind(key):
-    f = open('Backend/data/dataWind.json',)
+    """[summary]
+
+    Args:
+        key ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
+    f = open('Backend/data/dataWind.json', errors='ignore',)
     data = json.load(f)
     for p in data['station']:
         if (key == int(p['key'])):
@@ -61,7 +70,15 @@ def get_wind(key):
 
 
 def get_temp(key):
-    f = open('Backend/data/dataTemp.json',)
+    """[summary]
+
+    Args:
+        key ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
+    f = open('Backend/data/dataTemp.json', errors='ignore',)
     data = json.load(f)
     for p in data['station']:
         if (key == int(p['key'])):
