@@ -8,6 +8,7 @@ from Backend.Market import Market
 from werkzeug.wrappers import Request, Response
 from werkzeug.routing import Map, Rule
 from werkzeug.wsgi import responder
+from urllib.parse import unquote
 
 global_household_list = []
 global_power_plant_list = []
