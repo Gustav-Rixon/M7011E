@@ -387,8 +387,8 @@ def register(request, **data):
         cursor = connection.cursor(dictionary=True)
 
         sql = """INSERT INTO user (user_name, password, email, address, zipcode, prosumer) VALUES (%s, %s, %s, %s, %s, %s)"""
-        val = (unquote(data.get("username")), unquote(data.get("password")), unquote(data.get(
-            "email")), unquote(data.get("address")), unquote(data.get("zipcode")), unquote(data.get("prosumer")))
+        val = (data.get("username"), unquote(data.get("password")), data.get(
+            "email"), data.get("address"), data.get("zipcode"), data.get("prosumer"))
         cursor.execute(sql, val)
         # records = cursor.commit()
         connection.commit()
