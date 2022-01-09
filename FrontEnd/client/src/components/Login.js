@@ -17,7 +17,8 @@ function Login() {
                 setLoginStatus(response.data.message)
               }else{
                 localStorage.setItem("token", response.data.token)
-                navigate('/admin');
+                localStorage.setItem("id", response.data.id)
+                navigate('/LoginPage');
               }
             }).catch(err => err);
         };
@@ -28,7 +29,10 @@ function Login() {
               "x-access-token": localStorage.getItem("token")
           }}).then((response)=>{
             console.log(response.data);
-            if(response.data = "Authenticated"){
+            if(response.data = 1){
+            }
+            else{
+              console.log(response.data)
             }
 
           }).catch(err => err);

@@ -26,8 +26,7 @@ function Admin() {
             headers:{
               "x-access-token": localStorage.getItem("token")
           }}).then((response)=>{
-            console.log(response.data);
-            if(response.data = "Authenticated"){
+            if(response.data = 1){
             }
 
           }).catch(err => err);
