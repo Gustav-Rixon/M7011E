@@ -29,7 +29,7 @@ def get_close(lon, lat):
     Returns:
         [type]: [description]
     """
-    f = open('Backend/data/data.json', 'rb')
+    f = open('Backend/data/data.json',)
     data = json.load(f)
     closestStation = None
     currentD = 10000000000  # REMOVE
@@ -53,7 +53,7 @@ def distance(lon1, lat1, lon2, lat2):
 
 
 def get_wind(key):
-    f = open('Backend/data/dataWind.json', 'rb')
+    f = open('Backend/data/dataWind.json',)
     data = json.load(f)
     for p in data['station']:
         if (key == int(p['key'])):
@@ -61,7 +61,7 @@ def get_wind(key):
 
 
 def get_temp(key):
-    f = open('Backend/data/dataTemp.json', 'rb')
+    f = open('Backend/data/dataTemp.json',)
     data = json.load(f)
     for p in data['station']:
         if (key == int(p['key'])):
