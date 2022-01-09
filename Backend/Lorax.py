@@ -392,7 +392,7 @@ def register(request, **data):
         cursor.execute(sql, val)
         # records = cursor.commit()
         connection.commit()
-        add_house_hold(data.get(("username")))
+        add_house_hold(data.get("username"))
 
     except Error as e:
         return Response("Failed to insert into MySQL table {}".format(e))

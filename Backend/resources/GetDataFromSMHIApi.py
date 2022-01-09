@@ -16,7 +16,7 @@ class get_data_from_station:
         data_outside = requests.get(
             "https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station-set/all/period/latest-hour/data.json")
         data_outside.raise_for_status()
-        with open("dataTemp.json", "w") as file:
+        with open("Backend/data/dataTemp.json", "w") as file:
             file.write(data_outside.text)
 
     @rate_limited(1/10, mode='kill')
@@ -27,7 +27,7 @@ class get_data_from_station:
         data_outside = requests.get(
             "https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/4/station-set/all/period/latest-hour/data.json")
         data_outside.raise_for_status()
-        with open("dataWind.json", "w") as file:
+        with open("Backend/data/dataWind.json", "w") as file:
             file.write(data_outside.text)
 
     @rate_limited(1/10, mode='kill')
@@ -38,7 +38,7 @@ class get_data_from_station:
         data_station = requests.get(
             "https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/34/station-set/all/period/latest-hour/data.json")
         data_station.raise_for_status()
-        with open("data.json", "w") as file:
+        with open("Backend/data/data.json", "w") as file:
             file.write(data_station.text)
 
     def update_data(self):

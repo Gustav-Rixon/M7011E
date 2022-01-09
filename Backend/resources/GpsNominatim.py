@@ -29,7 +29,7 @@ def get_close(lon, lat):
     Returns:
         [type]: [description]
     """
-    f = open('Backend/data.json',)
+    f = open('Backend/data/data.json',)
     data = json.load(f)
     closestStation = None
     currentD = 10000000000  # REMOVE
