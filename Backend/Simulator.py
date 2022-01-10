@@ -418,6 +418,23 @@ class SimulatorEndPoints:
                 return Response("SUUC")
         return Response("FAILURE")
 
+    def admin_view(request):
+        if request.method == 'GET':
+            data = []
+            for house_hold in global_household_list:
+
+                if hasattr(house_hold, '_wind'):
+                    data.append({house_hold._id: [{"wind": house_hold._wind, "temp": house_hold._temp, "production": house_hold._production, "consumption": house_hold._consumption,
+                                                   "buffert_content": house_hold._buffert.content, "buffert_capacity": house_hold._buffert.capacity, "buffert_ratio": house_hold._ratio_to_market, "power_status": house_hold._power_status}]})
+                else:
+                    data.append({house_hold._id: [
+                        {"temp": house_hold._temp, "consumption": house_hold._consumption, "power_status": house_hold._power_status}]})
+
+                contents = json.dumps(data, sort_keys=True)
+
+            return Response(contents, content_type="application/json")
+        return Response("Wrong request method")
+
     @responder
     def application(environ, start_response):
         """[summary]
@@ -445,6 +462,7 @@ class SimulatorEndPoints:
                  endpoint='admin_login'),
             Rule('/admin/remove_user/user_id=<int:user_id>',
                  endpoint='remove_user'),
+            Rule('/admin/view', endpoint='admin_view'),
             Rule(
                 '/buy/house_hold/prosumer/house_hold=<int:id>&amount=<int:amount>&token=<string:token>', endpoint='buy'),
             Rule(
@@ -478,7 +496,8 @@ class SimulatorEndPoints:
                  'block_user': SimulatorEndPoints.block_user,
                  'get_market_data': SimulatorEndPoints.get_market_info,
                  'change_buffert_to_market': SimulatorEndPoints.change_ratio_to_market,
-                 'uploader': SimulatorEndPoints.upload_file}
+                 'uploader': SimulatorEndPoints.upload_file,
+                 'admin_view': SimulatorEndPoints.admin_view}
 
         request = Request(environ)
         urls = url_map.bind_to_environ(environ)
