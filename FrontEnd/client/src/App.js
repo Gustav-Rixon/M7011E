@@ -1,10 +1,11 @@
 
 import './App.css';
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-
+import React, { Component }  from 'react';
 import Login from "./components/Login.js";
 import Register from "./components/Register.js";
 import Admin from "./components/Admin.js";
+import LoginPage from './components/LoginPage';
 
 
 function App() {
@@ -30,8 +31,8 @@ function App() {
             <Route exact path='/' element={<Login/>} />
             <Route path="/sign-in" element={<Login/>} />
             <Route path="/sign-up" element={<Register/>}/>
-            <Route path="/admin" element={<Admin/>}
-             />
+            <Route path="/admin" element={<Admin/>}/>
+            <Route path="/LoginPage" element={<LoginPage/>}/>
           </Routes>
         </div>
       </div>

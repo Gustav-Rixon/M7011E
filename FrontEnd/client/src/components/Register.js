@@ -1,5 +1,6 @@
 import React, { useState} from "react";
 import Axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 Axios.defaults.withCredentials = false;
 
 function clean(value){
@@ -11,6 +12,7 @@ function clean(value){
   return value;
 }
 function Register() {
+    const navigate = useNavigate();
     const[name, setName] = useState("");
     const[address, setAddress] = useState("");
     const[zip, setZip] = useState("");
@@ -20,7 +22,6 @@ function Register() {
     const[prosumer, setProsumer] = useState('0');
     const submitRegistration = () => {
           //TODO fixa om tid finns Skriv if sats för alla steg
-          if(name !== "" && email.includes("@",".") && zip !==0 && password !==""){
               Axios.post("http://localhost:3001/register", {
                 name: name,
                 address: address, 
@@ -29,18 +30,15 @@ function Register() {
                 email:email,
                 prosumer:prosumer
               }).then((response)=> {
+                if(response.data.succ){
+                  alert("Successfull Registration")
+                  navigate('/sign-in');
+                }
                 if(response.data.message){
                   setLoginStatus(response.data.message)
-                }else{
-                  setLoginStatus("funkade")
                 }
               }).catch(error => console.log(error));
-          }
-          else{
-            setLoginStatus("Faulty inputs") 
-            console.log("Faulty inputs")
-          }
-    };
+          };
     return (
         <div className="Register">    
         <h1> Kolfall </h1>
