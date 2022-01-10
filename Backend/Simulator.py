@@ -18,6 +18,7 @@ global_event_list = []
 global_market = Market(0)
 fixed_price = 10
 key = "Test"
+adminKey = "admin"
 
 
 class Events:
@@ -420,19 +421,21 @@ class SimulatorEndPoints:
 
     def admin_view(request):
         if request.method == 'GET':
-            data = []
-            for house_hold in global_household_list:
+            if check_JWT(request.args.get('token'), request.args.get('id'), adminKey):
+                data = []
+                for house_hold in global_household_list:
 
-                if hasattr(house_hold, '_wind'):
-                    data.append({house_hold._id: [{"wind": house_hold._wind, "temp": house_hold._temp, "production": house_hold._production, "consumption": house_hold._consumption,
-                                                   "buffert_content": house_hold._buffert.content, "buffert_capacity": house_hold._buffert.capacity, "buffert_ratio": house_hold._ratio_to_market, "power_status": house_hold._power_status}]})
-                else:
-                    data.append({house_hold._id: [
-                        {"temp": house_hold._temp, "consumption": house_hold._consumption, "power_status": house_hold._power_status}]})
+                    if hasattr(house_hold, '_wind'):
+                        data.append({house_hold._id: [{"wind": house_hold._wind, "temp": house_hold._temp, "production": house_hold._production, "consumption": house_hold._consumption,
+                                                       "buffert_content": house_hold._buffert.content, "buffert_capacity": house_hold._buffert.capacity, "buffert_ratio": house_hold._ratio_to_market, "power_status": house_hold._power_status}]})
+                    else:
+                        data.append({house_hold._id: [
+                            {"temp": house_hold._temp, "consumption": house_hold._consumption, "power_status": house_hold._power_status}]})
 
-                contents = json.dumps(data, sort_keys=True)
+                    contents = json.dumps(data, sort_keys=True)
 
-            return Response(contents, content_type="application/json")
+                return Response(contents, content_type="application/json")
+            return Response("")
         return Response("Wrong request method")
 
     @responder
