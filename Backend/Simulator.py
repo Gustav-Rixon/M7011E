@@ -3,7 +3,7 @@ from time import sleep
 from Backend.resources.RateLimited import rate_limited
 from Backend.resources.Functions import calc_temp, calc_wind, calc_electricity_consumption, calc_production, check_JWT
 from werkzeug.wrappers import Request, Response
-from Backend.Lorax import create_house_holds_objects, create_power_plants_objects, register, login, add_house_hold, admin_login, checktest, remove_user_from_database, remove_user_from_simulation, upload_user_pic
+from Backend.Lorax import create_house_holds_objects, create_power_plants_objects, register, login, add_house_hold, admin_login, check, remove_user_from_database, remove_user_from_simulation, upload_user_pic
 from Backend.Market import Market
 from werkzeug.wrappers import Request, Response
 from werkzeug.routing import Map, Rule
@@ -194,8 +194,8 @@ class Simulator:
         while True:
 
             print("RUNNING")
-            self._consumer_households_in_siumulation, self._prosumer_households_in_siumulation = checktest(self._consumer_households_in_siumulation,
-                                                                                                           self._prosumer_households_in_siumulation)
+            self._consumer_households_in_siumulation, self._prosumer_households_in_siumulation = check(self._consumer_households_in_siumulation,
+                                                                                                       self._prosumer_households_in_siumulation)
             global_household_list = self._consumer_households_in_siumulation + \
                 self._prosumer_households_in_siumulation
             simulator_consumption, simulator_production = Simulator.calc_prosumer(
@@ -426,8 +426,10 @@ class SimulatorEndPoints:
                 for house_hold in global_household_list:
 
                     if hasattr(house_hold, '_wind'):
+                        Net_production = int(
+                            house_hold._production) - int(house_hold._consumption)
                         data.append({house_hold._id: [{"wind": house_hold._wind, "temp": house_hold._temp, "production": house_hold._production, "consumption": house_hold._consumption,
-                                                       "buffert_content": house_hold._buffert.content, "buffert_capacity": house_hold._buffert.capacity, "buffert_ratio": house_hold._ratio_to_market, "power_status": house_hold._power_status}]})
+                                                       "buffert_content": house_hold._buffert.content, "buffert_capacity": house_hold._buffert.capacity, "buffert_ratio": house_hold._ratio_to_market, "power_status": house_hold._power_status, "net_production": Net_production}]})
                     else:
                         data.append({house_hold._id: [
                             {"temp": house_hold._temp, "consumption": house_hold._consumption, "power_status": house_hold._power_status}]})
