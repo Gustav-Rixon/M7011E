@@ -335,11 +335,17 @@ class SimulatorEndPoints:
             global global_household_list
             if check_JWT(data.get("token"), data.get('id'), key):
                 for house_hold in global_household_list:
-                    if house_hold._id == data.get('id'):
-                        data = {house_hold._id: [{"wind": house_hold._wind, "temp": house_hold._temp, "production": house_hold._production, "consumption": house_hold._consumption,
-                                                  "buffert_content": house_hold._buffert.content, "buffert_capacity": house_hold._buffert.capacity, "buffert_ratio": house_hold._ratio_to_market}]}
-                        contents = json.dumps(data, sort_keys=True)
-                        return Response(contents, content_type="application/json")
+                    if hasattr(house_hold, '_wind'):
+                        Net_production = int(
+                            house_hold._production) - int(house_hold._consumption)
+                        data.append({house_hold._id: [{"wind": house_hold._wind, "temp": house_hold._temp, "production": house_hold._production, "consumption": house_hold._consumption,
+                                                       "buffert_content": house_hold._buffert.content, "buffert_capacity": house_hold._buffert.capacity, "buffert_ratio": house_hold._ratio_to_market, "power_status": house_hold._power_status, "net_production": Net_production}]})
+                    else:
+                        data.append({house_hold._id: [
+                            {"temp": house_hold._temp, "consumption": house_hold._consumption, "power_status": house_hold._power_status}]})
+
+                    contents = json.dumps(data, sort_keys=True)
+                    return Response(contents, content_type="application/json")
                 return Response("House hold not found")
             else:
                 return Response("Unauthorised")
