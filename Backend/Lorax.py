@@ -132,27 +132,34 @@ def create_power_plants_objects():
 
     list = []
 
-    myconn = mysql.connector.connect(
-        host="localhost", user="root", passwd="", database="m7011e")
-    cur = myconn.cursor()
-
     try:
-        cur.execute("select * from power_plant")
-        result = cur.fetchall()
-        num_fields = len(cur.description)
-        field_names = [i[0] for i in cur.description]
-        print(field_names)
+        connection = mysql.connector.connect(host='localhost',
+                                             database='m7011e',
+                                             user='root',
+                                             password='')
 
-        for value in result:
-            list.append(PowerPlant(value[0], 0, value[3], value[2],
-                                   value[1]))
+        sql_select_Query = "select * from power_plant"
+        # MySQLCursorDict creates a cursor that returns rows as dictionaries
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute(sql_select_Query)
+        records = cursor.fetchall()
 
-        myconn.commit()
-    except:
-        myconn.rollback()
-    myconn.close()
+        for row in records:
+            id = row["idpower_plant"]
+            buffert = row["buffert"]
+            buffert_capacety = row["buffert_capacety"]
+            status = row["status"]
 
-    return list
+            list.append(PowerPlant(id, 0, status, buffert_capacety,
+                                   buffert))
+
+    except Error as e:
+        print("Error reading data from MySQL table", e)
+    finally:
+        if connection.is_connected():
+            connection.close()
+            cursor.close()
+            return list
 
 
 def check_trade(list):
@@ -485,6 +492,31 @@ def add_house_hold(username):
                records[0]['user_id'], records[0]['prosumer'])
 
         cursor.execute(sql, val)
+        connection.commit()
+
+    except Error as e:
+        print("parameterized query failed {}".format(e))
+    finally:
+        if connection.is_connected():
+            connection.close()
+            cursor.close()
+            return Response(f"{cursor.rowcount}")
+
+
+def upload_user_pic(pic_name, user_id):
+    try:
+        connection = mysql.connector.connect(host='localhost',
+                                             database='m7011e',
+                                             user='root',
+                                             password='')
+
+        # MySQLCursorDict creates a cursor that returns rows as dictionaries
+        cursor = connection.cursor()
+        # MySQLCursorDict creates a cursor that returns rows as dictionaries
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute(
+            'INSERT user_pic=%s INTO user WHERE user_name=%s', (pic_name, user_id))
+
         connection.commit()
 
     except Error as e:

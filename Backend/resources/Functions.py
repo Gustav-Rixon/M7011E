@@ -25,7 +25,7 @@ def calc_wind(station_id, distance):
         noise = statistics.median(np.random.normal(0, 0.1, 1000))
 
     wind = float(wind) + noise
-    return abs(wind)
+    return float(abs(wind))
 
 
 def calc_station(address, zipcode):
@@ -69,7 +69,7 @@ def calc_temp(station_id, distance):
     else:
         noise = statistics.median(np.random.normal(0, 0.1, 1000))
     temp = float(temp) + noise
-    return temp
+    return float(temp)
 
 
 # https://www.energimarknadsbyran.se/el/dina-avtal-och-kostnader/elkostnader/elforbrukning/normal-elforbrukning-och-elkostnad-for-villa/
@@ -85,7 +85,7 @@ def calc_electricity_consumption(temp):
     """
     consumption = statistics.median(np.random.normal(
         0, 1, 100))
-    return 50 + (consumption-temp)
+    return int(50 + (consumption-temp))
 
 
 # TODO DO MATH
@@ -99,7 +99,7 @@ def calc_production(wind):
     Returns:
         [type]: [Production in kWh]
     """
-    return wind * 10000
+    return int(wind * 10000)
 
 
 def check_JWT(token, id):
@@ -120,3 +120,7 @@ def check_JWT(token, id):
         return True
     else:
         return False
+
+
+def create_JWT(id):
+    return jwt.encode({"id": "68"}, "Test", algorithm="HS256")

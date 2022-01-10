@@ -1,14 +1,14 @@
 import json
 from time import sleep
+from werkzeug.datastructures import FileStorage
 from Backend.resources.RateLimited import rate_limited
 from Backend.resources.Functions import calc_temp, calc_wind, calc_electricity_consumption, calc_production, check_JWT
 from werkzeug.wrappers import Request, Response
-from Backend.Lorax import create_house_holds_objects, create_power_plants_objects, register, login, add_house_hold, admin_login, checktest, remove_user_from_database, remove_user_from_simulation
+from Backend.Lorax import create_house_holds_objects, create_power_plants_objects, register, login, add_house_hold, admin_login, checktest, remove_user_from_database, remove_user_from_simulation, upload_user_pic
 from Backend.Market import Market
 from werkzeug.wrappers import Request, Response
 from werkzeug.routing import Map, Rule
 from werkzeug.wsgi import responder
-from urllib.parse import unquote
 
 global_household_list = []
 global_power_plant_list = []
@@ -40,13 +40,19 @@ class Events:
 
     # event id 2 - Change power plant prod
     def change_production(id, order):
-        global global_power_plant_list
-        print("Burning more hamsters!!!!")
-        for power_plant in global_power_plant_list:
-            if power_plant._id == id:
-                power_plant._production = order
+        try:
+            global global_power_plant_list
+            print(order)
+            print(id)
+            print("Burning more hamsters!!!!")
+            for power_plant in global_power_plant_list:
+                if power_plant._id == int(id):
+                    power_plant._production = int(order)
+        except ValueError as e:
+            return e
 
     # event id 3 - blackout
+
     def blackout_whole_network():
         global global_household_list
         for household in global_household_list:
@@ -186,6 +192,8 @@ class Simulator:
             print("RUNNING")
             self._consumer_households_in_siumulation, self._prosumer_households_in_siumulation = checktest(self._consumer_households_in_siumulation,
                                                                                                            self._prosumer_households_in_siumulation)
+            global_household_list = self._consumer_households_in_siumulation + \
+                self._prosumer_households_in_siumulation
             simulator_consumption, simulator_production = Simulator.calc_prosumer(
                 self._prosumer_households_in_siumulation)
 
@@ -223,6 +231,7 @@ class Simulator:
             print(simulator_production-simulator_consumption)
             print(
                 f"????????????????? {global_market.market_buffert.content} ?????????????????")
+            print(f"POWER{global_power_plant_list[0]._production}")
             sleep(1)
 
         # On Windows the subprocesses will import (i.e. execute) the main module at start. You need to insert an if __name__ == '__main__': guard in the main module to avoid creating subprocesses
@@ -236,32 +245,43 @@ class SimulatorEndPoints:
         Contains all the API endpoints and their handels theres requests.
     """
 
-    @rate_limited(1/10, mode='kill')
-    def on_change_power_plant_output(request, **data):
-        Events.change_production(data.get('id'), data.get('power'))
-        return Response(f"burning {data} hamsters insted")
+    # @rate_limited(1/10, mode='kill')
+    def on_change_power_plant_output(request):
+        if request.method == ('POST'):
+            error = Events.change_production(request.args.get(
+                'id'), request.args.get('power'))
+            if error:
+                return Response(str(error))
+            return Response(f"burning {request.args.get('id')}, {request.args.get('power')} hamsters insted")
+        return Response("Wrong request method")
 
     def buy(request, **data):
         global global_market
-        for house_hold in global_household_list:
-            if house_hold._id == data.get('id'):
-                if data.get('amount') < global_market.market_buffert.content:
-                    house_hold._buffert.content += data.get('amount')
-                    Market.buy_from_market(global_market, data.get('amount'))
-                    return Response(f"SUCC {global_market.market_buffert.content}")
-                return Response(f"FAIL {global_market.market_buffert.content}")
+        if check_JWT(data.get("token"), data.get('id')):
+            for house_hold in global_household_list:
+                if house_hold._id == data.get('id'):
+                    if data.get('amount') < global_market.market_buffert.content:
+                        house_hold._buffert.content += data.get('amount')
+                        Market.buy_from_market(
+                            global_market, data.get('amount'))
+                        return Response(f"SUCC {global_market.market_buffert.content}")
+                    return Response(f"FAIL {global_market.market_buffert.content}")
+        return Response("Unauthorised")
 
     def sell(request, **data):
         global global_market
-        for house_hold in global_household_list:
-            if house_hold._id == data.get('id'):
-                if house_hold._blocked_status == True and house_hold._blocked_number_of_cykels > 0:
-                    return Response(f"FAILD YOU ARE BLOKED AND cant sell for {house_hold._blocked_number_of_cykels}")
-                if data.get('amount') < house_hold._buffert.content:
-                    house_hold._buffert.content -= data.get('amount')
-                    Market.send_to_market(global_market, data.get('amount'))
-                    return Response(f"SUCC {global_market.market_buffert.content}")
-                return Response(f"FAIL {house_hold._buffert.content}")
+        if check_JWT(data.get("token"), data.get('id')):
+            for house_hold in global_household_list:
+                if house_hold._id == data.get('id'):
+                    if house_hold._blocked_status == True and house_hold._blocked_number_of_cykels > 0:
+                        return Response(f"FAILD YOU ARE BLOKED AND cant sell for {house_hold._blocked_number_of_cykels}")
+                    if data.get('amount') < house_hold._buffert.content:
+                        house_hold._buffert.content -= data.get('amount')
+                        Market.send_to_market(
+                            global_market, data.get('amount'))
+                        return Response(f"SUCC {global_market.market_buffert.content}")
+                    return Response(f"FAIL {house_hold._buffert.content}")
+        return Response("Unauthorised")
 
     @rate_limited(1/10, mode='kill')  # FIX
     def change_market_size(request, **data):
@@ -309,7 +329,7 @@ class SimulatorEndPoints:
                 for house_hold in global_household_list:
                     if house_hold._id == data.get('id'):
                         data = {house_hold._id: [{"wind": house_hold._wind, "temp": house_hold._temp, "production": house_hold._production, "consumption": house_hold._consumption,
-                                                  "buffert_content": house_hold._buffert.content, "buffert_capacity": house_hold._buffert.capacity}]}
+                                                  "buffert_content": house_hold._buffert.content, "buffert_capacity": house_hold._buffert.capacity, "buffert_ratio": house_hold._ratio_to_market}]}
                         contents = json.dumps(data, sort_keys=True)
                         return Response(contents, content_type="application/json")
                 return Response("House hold not found")
@@ -338,6 +358,15 @@ class SimulatorEndPoints:
             return Response("Unauthorised")
         return Response("Wrong request method")
 
+    def upload_file(request):
+        if request.method == ('POST'):
+            y = FileStorage(filename="test", name="test")
+            # y.content_type
+            y.save(dst='Backend/test.txt')
+            y.close()
+            return Response(f"{type(y)}")
+        return Response("Wrong request method")
+
     @responder
     def application(environ, start_response):
         """[summary]
@@ -356,7 +385,7 @@ class SimulatorEndPoints:
 
         url_map = Map([
             Rule(
-                '/admin/tools/change_power/id=<int:id>&power=<int:power>', endpoint='change_power'),
+                '/admin/tools/change_power', endpoint='change_power'),
             Rule('/admin/tools/block_user_from_trade/house_hold_id=<int:id>&number_of_cycle=<int:cycle>',
                  endpoint='block_user'),
             Rule('/admin/tools/change_market_size/size=<int:size>',
@@ -366,13 +395,15 @@ class SimulatorEndPoints:
             Rule('/admin/remove_user/user_id=<int:user_id>',
                  endpoint='remove_user'),
             Rule(
-                '/buy/house_hold/prosumer/house_hold=<int:id>&amount=<int:amount>', endpoint='buy'),
+                '/buy/house_hold/prosumer/house_hold=<int:id>&amount=<int:amount>&token=<string:token>', endpoint='buy'),
             Rule(
-                '/sell/house_hold/prosumer/house_hold_id=<int:id>&amount=<int:amount>', endpoint='sell'),
+                '/sell/house_hold/prosumer/house_hold_id=<int:id>&amount=<int:amount>&token=<string:token>', endpoint='sell'),
             Rule('/data/house_hold=<int:id>&token=<string:token>',
                  endpoint='get_house_hold_data'),
             Rule(
-                '/change_buffert/house_hold=<int:id>&amount=<int:amount>&token=<string:token>', endpoint="change_buffert_to_market"),
+                '/change_buffert/house_hold=<int:id>&amount=<int:amount>&token=<string:token>', endpoint='change_buffert_to_market'),
+            Rule(
+                '/user/change_profile_picture', endpoint='change_profile_picture'),
             Rule('/data/get_market_data', endpoint='get_market_data'),
             Rule(
                 '/register/username=<string:username>&password=<string:password>&email=<string:email>&address=<string:address>&zipcode=<string:zipcode>&prosumer=<int:prosumer>', endpoint='register'),
@@ -394,7 +425,8 @@ class SimulatorEndPoints:
                  'test2': remove_user_from_simulation,
                  'block_user': SimulatorEndPoints.block_user,
                  'get_market_data': SimulatorEndPoints.get_market_info,
-                 'change_buffert_to_market': SimulatorEndPoints.change_ratio_to_market
+                 'change_buffert_to_market': SimulatorEndPoints.change_ratio_to_market,
+                 'change_profile_picture': SimulatorEndPoints.upload_file
                  }
 
         request = Request(environ)
