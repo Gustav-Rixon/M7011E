@@ -118,7 +118,7 @@ def check_JWT(token, id, key):
     test = jwt.decode(token,
                       key, algorithms=["HS256"])
 
-    if str(id) == test.get("id"):
+    if str(id) == str(test.get("id")):
         return True
     else:
         return False
