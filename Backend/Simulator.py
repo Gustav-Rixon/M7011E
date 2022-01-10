@@ -334,6 +334,7 @@ class SimulatorEndPoints:
         if request.method == ('GET'):
             global global_household_list
             if check_JWT(data.get("token"), data.get('id'), key):
+                data = []
                 for house_hold in global_household_list:
                     if hasattr(house_hold, '_wind'):
                         Net_production = int(
@@ -343,12 +344,10 @@ class SimulatorEndPoints:
                     else:
                         data.append({house_hold._id: [
                             {"temp": house_hold._temp, "consumption": house_hold._consumption, "power_status": house_hold._power_status}]})
-
                     contents = json.dumps(data, sort_keys=True)
                     return Response(contents, content_type="application/json")
                 return Response("House hold not found")
-            else:
-                return Response("Unauthorised")
+            return Response("Unauthorised")
         return Response("Wrong request method")
 
     def get_market_info(request, **data):
@@ -430,7 +429,6 @@ class SimulatorEndPoints:
             if check_JWT(request.args.get('token'), request.args.get('id'), adminKey):
                 data = []
                 for house_hold in global_household_list:
-
                     if hasattr(house_hold, '_wind'):
                         Net_production = int(
                             house_hold._production) - int(house_hold._consumption)
@@ -440,10 +438,9 @@ class SimulatorEndPoints:
                         data.append({house_hold._id: [
                             {"temp": house_hold._temp, "consumption": house_hold._consumption, "power_status": house_hold._power_status}]})
 
-                    contents = json.dumps(data, sort_keys=True)
-
+                contents = json.dumps(data, sort_keys=True)
                 return Response(contents, content_type="application/json")
-            return Response("")
+            return Response("Unauthorised")
         return Response("Wrong request method")
 
     @responder
