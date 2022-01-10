@@ -64,9 +64,9 @@ class TestFunctions(unittest.TestCase):
 
     def test_check_JWT(self):
         token = Functions.create_JWT(68)
-        data = Functions.check_JWT(token, 68)
+        data = Functions.check_JWT(token, 68, "Test")
         self.assertEqual(True, data)
-        data2 = Functions.check_JWT(token, 1)
+        data2 = Functions.check_JWT(token, 1, "Test")
         self.assertEqual(False, data2)
 
 
