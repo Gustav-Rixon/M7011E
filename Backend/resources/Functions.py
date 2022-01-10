@@ -125,4 +125,12 @@ def check_JWT(token, id, key):
 
 
 def create_JWT(id):
+    """[summary]
+        Creates an JWT with the HS256 method
+    Args:
+        id ([int]): [User id]
+
+    Returns:
+        [jwt]: [a jwt signed with our secret key]
+    """
     return jwt.encode({"id": "68"}, "Test", algorithm="HS256")
