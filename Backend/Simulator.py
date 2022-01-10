@@ -281,13 +281,13 @@ class SimulatorEndPoints:
                 for house_hold in global_household_list:
                     if house_hold._id == data.get('id'):
                         if house_hold._blocked_status == True and house_hold._blocked_number_of_cykels > 0:
-                            return Response(f"FAILD YOU ARE BLOKED AND cant sell for {house_hold._blocked_number_of_cykels}")
+                            return Response(f"Failed you are blocked from selling. Blocked for {house_hold._blocked_number_of_cykels} cycles")
                         if data.get('amount') < house_hold._buffert.content:
                             house_hold._buffert.content -= data.get('amount')
                             Market.send_to_market(
                                 global_market, data.get('amount'))
-                            return Response(f"SUCC {global_market.market_buffert.content}")
-                        return Response(f"FAIL {house_hold._buffert.content}")
+                            return Response(f"You have now sold {data.get('amount')}kWh")
+                        return Response(f"Failed not enough minerals!")
             return Response("Unauthorised")
         return Response("Wrong request method")
 
