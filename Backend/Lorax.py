@@ -514,9 +514,10 @@ def upload_user_pic(pic_name, user_id):
         cursor = connection.cursor()
         # MySQLCursorDict creates a cursor that returns rows as dictionaries
         cursor = connection.cursor(dictionary=True)
+        sql = """INSERT INTO user WHERE user_name=%s (user_pic) VALUES (%s)"""
+        val = (user_id, pic_name)
         cursor.execute(
-            'INSERT user_pic=%s INTO user WHERE user_name=%s', (pic_name, user_id))
-
+            'UPDATE user SET user_pic=%s WHERE user_id=%s', (pic_name, user_id,))
         connection.commit()
 
     except Error as e:
