@@ -257,31 +257,35 @@ class SimulatorEndPoints:
 
     def buy(request, **data):
         global global_market
-        if check_JWT(data.get("token"), data.get('id')):
-            for house_hold in global_household_list:
-                if house_hold._id == data.get('id'):
-                    if data.get('amount') < global_market.market_buffert.content:
-                        house_hold._buffert.content += data.get('amount')
-                        Market.buy_from_market(
-                            global_market, data.get('amount'))
-                        return Response(f"SUCC {global_market.market_buffert.content}")
-                    return Response(f"FAIL {global_market.market_buffert.content}")
-        return Response("Unauthorised")
+        if request.method == ('POST'):
+            if check_JWT(data.get("token"), data.get('id')):
+                for house_hold in global_household_list:
+                    if house_hold._id == data.get('id'):
+                        if data.get('amount') < global_market.market_buffert.content:
+                            house_hold._buffert.content += data.get('amount')
+                            Market.buy_from_market(
+                                global_market, data.get('amount'))
+                            return Response(f"SUCC {global_market.market_buffert.content}")
+                        return Response(f"FAIL {global_market.market_buffert.content}")
+            return Response("Unauthorised")
+        return Response("Wrong request method")
 
     def sell(request, **data):
         global global_market
-        if check_JWT(data.get("token"), data.get('id')):
-            for house_hold in global_household_list:
-                if house_hold._id == data.get('id'):
-                    if house_hold._blocked_status == True and house_hold._blocked_number_of_cykels > 0:
-                        return Response(f"FAILD YOU ARE BLOKED AND cant sell for {house_hold._blocked_number_of_cykels}")
-                    if data.get('amount') < house_hold._buffert.content:
-                        house_hold._buffert.content -= data.get('amount')
-                        Market.send_to_market(
-                            global_market, data.get('amount'))
-                        return Response(f"SUCC {global_market.market_buffert.content}")
-                    return Response(f"FAIL {house_hold._buffert.content}")
-        return Response("Unauthorised")
+        if request.method == ('POST'):
+            if check_JWT(data.get("token"), data.get('id')):
+                for house_hold in global_household_list:
+                    if house_hold._id == data.get('id'):
+                        if house_hold._blocked_status == True and house_hold._blocked_number_of_cykels > 0:
+                            return Response(f"FAILD YOU ARE BLOKED AND cant sell for {house_hold._blocked_number_of_cykels}")
+                        if data.get('amount') < house_hold._buffert.content:
+                            house_hold._buffert.content -= data.get('amount')
+                            Market.send_to_market(
+                                global_market, data.get('amount'))
+                            return Response(f"SUCC {global_market.market_buffert.content}")
+                        return Response(f"FAIL {house_hold._buffert.content}")
+            return Response("Unauthorised")
+        return Response("Wrong request method")
 
     @rate_limited(1/10, mode='kill')  # FIX
     def change_market_size(request, **data):
