@@ -176,7 +176,7 @@ def check_trade(list):
             object._blocked_number_of_cykels -= 1
 
 
-def checktest(consumer_households_in_siumulation, prosumer_households_in_siumulation):
+def check(consumer_households_in_siumulation, prosumer_households_in_siumulation):
     """[summary]
         Checks if a new user needs to be added to the simulation or if a user is removed
 
