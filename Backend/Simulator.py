@@ -426,8 +426,16 @@ class SimulatorEndPoints:
         return Response("FAILURE")
 
     def admin_view(request):
+        """[summary]
+
+        Args:
+            request ([type]): [description]
+
+        Returns:
+            [type]: [description]
+        """
         if request.method == 'GET':
-            if check_JWT(request.args.get('token'), request.args.get('id'), adminKey):
+            if check_JWT(request.args.get('token'), int(request.args.get('id')), adminKey):
                 data = []
                 for house_hold in global_household_list:
                     if hasattr(house_hold, '_wind'):
