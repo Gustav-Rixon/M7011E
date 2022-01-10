@@ -334,19 +334,20 @@ class SimulatorEndPoints:
         if request.method == ('GET'):
             global global_household_list
             if check_JWT(data.get("token"), data.get('id'), key):
-                data = []
                 for house_hold in global_household_list:
-                    if hasattr(house_hold, '_wind'):
-                        Net_production = int(
-                            house_hold._production) - int(house_hold._consumption)
-                        data.append({house_hold._id: [{"wind": house_hold._wind, "temp": house_hold._temp, "production": house_hold._production, "consumption": house_hold._consumption,
-                                                       "buffert_content": house_hold._buffert.content, "buffert_capacity": house_hold._buffert.capacity, "buffert_ratio": house_hold._ratio_to_market, "power_status": house_hold._power_status, "net_production": Net_production}]})
+                    if house_hold._id == int(data.get('id')):
+                        if hasattr(house_hold, '_wind'):
+                            Net_production = int(
+                                house_hold._production) - int(house_hold._consumption)
+                            resp = {house_hold._id: [{"wind": house_hold._wind, "temp": house_hold._temp, "production": house_hold._production, "consumption": house_hold._consumption,
+                                                      "buffert_content": house_hold._buffert.content, "buffert_capacity": house_hold._buffert.capacity, "buffert_ratio": house_hold._ratio_to_market, "power_status": house_hold._power_status, "net_production": Net_production}]}
+                        else:
+                            resp = {house_hold._id: [
+                                {"temp": house_hold._temp, "consumption": house_hold._consumption, "power_status": house_hold._power_status}]}
+                        contents = json.dumps(resp, sort_keys=True)
                     else:
-                        data.append({house_hold._id: [
-                            {"temp": house_hold._temp, "consumption": house_hold._consumption, "power_status": house_hold._power_status}]})
-                    contents = json.dumps(data, sort_keys=True)
+                        continue
                     return Response(contents, content_type="application/json")
-                return Response("House hold not found")
             return Response("Unauthorised")
         return Response("Wrong request method")
 
