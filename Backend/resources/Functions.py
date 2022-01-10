@@ -102,19 +102,21 @@ def calc_production(wind):
     return int(wind * 20)
 
 
-def check_JWT(token, id):
+def check_JWT(token, id, key):
     """[Summary]
         Takes a JWT token and checks if the id is the same as the JWT id 
 
     Args:
         token ([String]): [JWT token]
         id ([int]): [id of the requester]
+        key ([string]): [Key for JWT]
+
 
     Returns:
         [Boolean]: [True if its a match, False if not a match]
     """
     test = jwt.decode(token,
-                      "Test", algorithms=["HS256"])
+                      key=key, algorithms=["HS256"])
 
     if str(id) == test.get("id"):
         return True
