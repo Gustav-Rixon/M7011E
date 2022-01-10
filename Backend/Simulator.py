@@ -1,6 +1,5 @@
 import json
 from time import sleep
-from werkzeug.datastructures import FileStorage
 from Backend.resources.RateLimited import rate_limited
 from Backend.resources.Functions import calc_temp, calc_wind, calc_electricity_consumption, calc_production, check_JWT
 from werkzeug.wrappers import Request, Response
@@ -9,12 +8,16 @@ from Backend.Market import Market
 from werkzeug.wrappers import Request, Response
 from werkzeug.routing import Map, Rule
 from werkzeug.wsgi import responder
+from werkzeug.utils import secure_filename
+from flask import Flask, flash, redirect
+import os
 
 global_household_list = []
 global_power_plant_list = []
 global_event_list = []
 global_market = Market(0)
 fixed_price = 10
+key = "Test"
 
 
 class Events:
@@ -258,7 +261,7 @@ class SimulatorEndPoints:
     def buy(request, **data):
         global global_market
         if request.method == ('POST'):
-            if check_JWT(data.get("token"), data.get('id')):
+            if check_JWT(data.get("token"), data.get('id'), key):
                 for house_hold in global_household_list:
                     if house_hold._id == data.get('id'):
                         if data.get('amount') < global_market.market_buffert.content:
@@ -273,7 +276,7 @@ class SimulatorEndPoints:
     def sell(request, **data):
         global global_market
         if request.method == ('POST'):
-            if check_JWT(data.get("token"), data.get('id')):
+            if check_JWT(data.get("token"), data.get('id'), key):
                 for house_hold in global_household_list:
                     if house_hold._id == data.get('id'):
                         if house_hold._blocked_status == True and house_hold._blocked_number_of_cykels > 0:
@@ -329,7 +332,7 @@ class SimulatorEndPoints:
         """
         if request.method == ('GET'):
             global global_household_list
-            if check_JWT(data.get("token"), data.get('id')):
+            if check_JWT(data.get("token"), data.get('id'), key):
                 for house_hold in global_household_list:
                     if house_hold._id == data.get('id'):
                         data = {house_hold._id: [{"wind": house_hold._wind, "temp": house_hold._temp, "production": house_hold._production, "consumption": house_hold._consumption,
@@ -352,24 +355,68 @@ class SimulatorEndPoints:
 
     def change_ratio_to_market(request, **data):
         if request.method == ('POST'):
-            if check_JWT(data.get("token"), data.get('id')):
+            if check_JWT(data.get("token"), data.get('id'), key):
                 global global_household_list
+
+                # check if request is legit
+                if int(data.get('amount')) > 100 or int(data.get('amount')) < 0:
+                    return Response("You cant do that")
+
                 for house_hold in global_household_list:
                     if house_hold._id == data.get('id') and house_hold._buffert.content > 0:
-                        house_hold._ratio_to_market = data.get('amount')
-                        return Response(f"Sending {data.get('amount')*100}% to market")
+                        house_hold._ratio_to_market = int(
+                            data.get('amount'))/100
+                        return Response(f"Sending {data.get('amount')}% to market")
                 return Response("User not found or not alode to change buffert")
             return Response("Unauthorised")
         return Response("Wrong request method")
 
+    def allowed_file(filename):
+        """[summary]
+        Dictates what file formats are allowed to upload
+        Args:
+            filename ([String]): [The name of the file]
+
+        Returns:
+            [Boolean]: [True if allowd, False of file format not in ALLOWED_EXTENSIONS]
+        """
+        ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+        return '.' in filename and \
+            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
     def upload_file(request):
-        if request.method == ('POST'):
-            y = FileStorage(filename="test", name="test")
-            # y.content_type
-            y.save(dst='Backend/test.txt')
-            y.close()
-            return Response(f"{type(y)}")
-        return Response("Wrong request method")
+        """[summary]
+            This route recives an file from an form typ file and uplodes it to the server.
+
+        Returns:
+            [redirect]: [redirects user after successfully a upload, returns error if not successfully]
+        """
+        if request.method == 'POST':
+            app = Flask(__name__)
+            UPLOAD_FOLDER = 'Database/ProfilePictures/users'
+            app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+            app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+            app.secret_key = 'super secret key'
+            app.config['SESSION_TYPE'] = 'filesystem'
+            # check if the post request has the file part
+            if 'file' not in request.files:
+                flash('No file part')
+                return redirect(request.url)
+            file = request.files['file']
+            # if user does not select file, browser also
+            # submit an empty part without filename
+            if file.filename == '':
+                flash('No selected file')
+                return redirect(request.url)
+            if file and SimulatorEndPoints.allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(
+                    app.config['UPLOAD_FOLDER'], request.form.get('userid')+filename))
+                # TODO INSERT FILE PATHE INTO USER TABLE
+                upload_user_pic(request.form.get('userid') +
+                                filename, request.form.get('userid'))
+                return Response("SUUC")
+        return Response("FAILURE")
 
     @responder
     def application(environ, start_response):
@@ -413,7 +460,8 @@ class SimulatorEndPoints:
                 '/register/username=<string:username>&password=<string:password>&email=<string:email>&address=<string:address>&zipcode=<string:zipcode>&prosumer=<int:prosumer>', endpoint='register'),
             Rule('/login/username=<string:username>', endpoint='login'),
             Rule('/test/username=<string:username>', endpoint='test'),
-            Rule('/test', endpoint='test2')
+            Rule('/test', endpoint='test2'),
+            Rule('/uploader', endpoint='uploader')
         ])
 
         views = {'change_power': SimulatorEndPoints.on_change_power_plant_output,
@@ -430,8 +478,7 @@ class SimulatorEndPoints:
                  'block_user': SimulatorEndPoints.block_user,
                  'get_market_data': SimulatorEndPoints.get_market_info,
                  'change_buffert_to_market': SimulatorEndPoints.change_ratio_to_market,
-                 'change_profile_picture': SimulatorEndPoints.upload_file
-                 }
+                 'uploader': SimulatorEndPoints.upload_file}
 
         request = Request(environ)
         urls = url_map.bind_to_environ(environ)
