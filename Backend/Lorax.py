@@ -456,7 +456,7 @@ def admin_login(request, **data):
         # MySQLCursorDict creates a cursor that returns rows as dictionaries
         cursor = connection.cursor(dictionary=True)
         cursor.execute(
-            'SELECT password FROM admin_table WHERE admin =%s', (data.get('username'),))
+            'SELECT password FROM admin WHERE user_name =%s', (data.get('username'),))
         records = cursor.fetchall()
 
     except Error as e:
