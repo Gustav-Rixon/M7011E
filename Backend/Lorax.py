@@ -412,7 +412,7 @@ def register(request, **data):
 
 def login(request, **data):
     """[summary]
-        Checks login credentials from the database 
+        Checks login credentials from the database
 
     Args:
         request ([type]): [description]
@@ -514,8 +514,6 @@ def upload_user_pic(pic_name, user_id):
         cursor = connection.cursor()
         # MySQLCursorDict creates a cursor that returns rows as dictionaries
         cursor = connection.cursor(dictionary=True)
-        sql = """INSERT INTO user WHERE user_name=%s (user_pic) VALUES (%s)"""
-        val = (user_id, pic_name)
         cursor.execute(
             'UPDATE user SET user_pic=%s WHERE user_id=%s', (pic_name, user_id,))
         connection.commit()
@@ -527,6 +525,36 @@ def upload_user_pic(pic_name, user_id):
             connection.close()
             cursor.close()
             return Response(f"{cursor.rowcount}")
+
+
+def get_user_pic(user_id, table):
+    try:
+        connection = mysql.connector.connect(host='localhost',
+                                             database='m7011e',
+                                             user='root',
+                                             password='')
+
+        # MySQLCursorDict creates a cursor that returns rows as dictionaries
+        cursor = connection.cursor()
+        # MySQLCursorDict creates a cursor that returns rows as dictionaries
+        cursor = connection.cursor(dictionary=True)
+        if table == "admin":
+            cursor.execute(
+                'SELECT user_pic FROM admin WHERE user_id=%s', (user_id,))
+
+        if table == "user":
+            cursor.execute(
+                'SELECT user_pic FROM user WHERE user_id=%s', (user_id,))
+
+        records = cursor.fetchall()
+
+    except Error as e:
+        print("parameterized query failed {}".format(e))
+    finally:
+        if connection.is_connected():
+            connection.close()
+            cursor.close()
+            return records
 
 
 def search_global_list(id, list):

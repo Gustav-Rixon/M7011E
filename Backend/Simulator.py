@@ -3,7 +3,7 @@ from time import sleep
 from Backend.resources.RateLimited import rate_limited
 from Backend.resources.Functions import calc_temp, calc_wind, calc_electricity_consumption, calc_production, check_JWT
 from werkzeug.wrappers import Request, Response
-from Backend.Lorax import create_house_holds_objects, create_power_plants_objects, register, login, add_house_hold, admin_login, check, remove_user_from_database, remove_user_from_simulation, upload_user_pic
+from Backend.Lorax import create_house_holds_objects, create_power_plants_objects, register, login, add_house_hold, admin_login, check, remove_user_from_database, remove_user_from_simulation, upload_user_pic, get_user_pic
 from Backend.Market import Market
 from werkzeug.wrappers import Request, Response
 from werkzeug.routing import Map, Rule
@@ -443,6 +443,18 @@ class SimulatorEndPoints:
             return Response("Unauthorised")
         return Response("Wrong request method")
 
+    def get_pic(request):
+        if request.method == 'GET':
+            if request.args.get('type') == "admin":
+                if check_JWT(request.args.get('token'), int(request.args.get('id')), adminKey):
+                    file = get_user_pic(request.args.get('id'), "admin")
+                    return Response(f"{file}")
+            if check_JWT(request.args.get('token'), int(request.args.get('id')), key):
+                file = get_user_pic(request.args.get('id'), "user")
+                return Response(f'{file[0].get("user_pic")}')
+            return Response("Unauthorised")
+        return Response("Wrong request method")
+
     @responder
     def application(environ, start_response):
         """[summary]
@@ -487,7 +499,8 @@ class SimulatorEndPoints:
             Rule('/login/username=<string:username>', endpoint='login'),
             Rule('/test/username=<string:username>', endpoint='test'),
             Rule('/test', endpoint='test2'),
-            Rule('/uploader', endpoint='uploader')
+            Rule('/uploader', endpoint='uploader'),
+            Rule('/user/get_user_pic', endpoint='get_user_pic')
         ])
 
         views = {'change_power': SimulatorEndPoints.on_change_power_plant_output,
@@ -505,7 +518,8 @@ class SimulatorEndPoints:
                  'get_market_data': SimulatorEndPoints.get_market_info,
                  'change_buffert_to_market': SimulatorEndPoints.change_ratio_to_market,
                  'uploader': SimulatorEndPoints.upload_file,
-                 'admin_view': SimulatorEndPoints.admin_view}
+                 'admin_view': SimulatorEndPoints.admin_view,
+                 'get_user_pic': SimulatorEndPoints.get_pic}
 
         request = Request(environ)
         urls = url_map.bind_to_environ(environ)
