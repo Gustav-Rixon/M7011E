@@ -11,6 +11,7 @@ from werkzeug.routing import Map, Rule
 from werkzeug.wsgi import responder
 from werkzeug.utils import redirect, secure_filename
 import os
+import base64
 
 global_household_list = []
 global_power_plant_list = []
@@ -417,6 +418,13 @@ class SimulatorEndPoints:
                 return Response("SUUC")
         return Response("FAILURE")
 
+    def send_file(request):
+        file_name = SimulatorEndPoints.get_pic(request)
+        UPLOAD_FOLDER = 'Database/ProfilePictures/users/'
+        with open(UPLOAD_FOLDER+file_name[0].get("user_pic"), 'rb') as image_file:
+            encoded_string = base64.b64encode(image_file.read())
+        return Response(f"{encoded_string}")
+
     def admin_view(request):
         """[summary]
 
@@ -449,10 +457,10 @@ class SimulatorEndPoints:
             if request.args.get('type') == "admin":
                 if check_JWT(request.args.get('token'), int(request.args.get('id')), adminKey):
                     file = get_user_pic(request.args.get('id'), "admin")
-                    return Response(f"{file}")
+                    return file
             if check_JWT(request.args.get('token'), int(request.args.get('id')), key):
                 file = get_user_pic(request.args.get('id'), "user")
-                return Response(f'{file[0].get("user_pic")}')
+                return file
             return Response("Unauthorised")
         return Response("Wrong request method")
 
@@ -542,7 +550,7 @@ class SimulatorEndPoints:
             Rule('/test', endpoint='test2'),
             Rule('/uploader', endpoint='uploader'),
             Rule('/admin/tool/change_user_info', endpoint='change_user_info'),
-            Rule('/user/get_user_pic', endpoint='get_user_pic')
+            Rule('/user/get_user_pic', endpoint='get_user_pic'),
         ])
 
         views = {'change_power': SimulatorEndPoints.on_change_power_plant_output,
@@ -561,7 +569,7 @@ class SimulatorEndPoints:
                  'change_buffert_to_market': SimulatorEndPoints.change_ratio_to_market,
                  'uploader': SimulatorEndPoints.upload_file,
                  'admin_view': SimulatorEndPoints.admin_view,
-                 'get_user_pic': SimulatorEndPoints.get_pic,
+                 'get_user_pic': SimulatorEndPoints.send_file,
                  'change_user_info': SimulatorEndPoints.change_user_credentials}
 
         request = Request(environ)
