@@ -466,14 +466,14 @@ class SimulatorEndPoints:
                     return Response(f"user_name for id {request.args.get('target_id')} changed")
 
                 if request.args.get('password'):
-                    change_user_info(request.args.get(
-                        'target_id'), request.args.get('user_name'), request.args.get('target_row'))
-                    return Response(f"password for id {request.args.get('target_id')} changed")
+                    res = change_user_info(request.args.get(
+                        'target_id'), request.args.get('password'), request.args.get('target_row'))
+                    return Response(f"{res}")
 
                 if request.args.get('email'):
-                    change_user_info(request.args.get(
-                        'target_id'), request.args.get('user_name'), request.args.get('target_row'))
-                    return Response(f"email for id {request.args.get('target_id')} changed")
+                    res = change_user_info(request.args.get(
+                        'target_id'), request.args.get('email'), request.args.get('target_row'))
+                    return Response(f"{res}")
 
                 if request.args.get('address') and request.args.get('zipcode'):
                     data = get_data(request.args.get('address'),
@@ -486,7 +486,7 @@ class SimulatorEndPoints:
 
                 if request.args.get('prosumer'):
                     change_user_info(request.args.get(
-                        'target_id'), request.args.get('user_name'), request.args.get('target_row'))
+                        'target_id'), request.args.get('prosumer'), request.args.get('target_row'))
                     return Response(f"prosumer for id {request.args.get('target_id')} changed")
 
                 if request.args.get('user_pic'):

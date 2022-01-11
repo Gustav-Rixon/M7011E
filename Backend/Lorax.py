@@ -7,6 +7,7 @@ from urllib.parse import unquote
 
 class Consumer:
     """[summary]
+        Consumer class
     """
 
     def __init__(self, id, consumption, closest_station_id, closest_station_distance, power_status):
@@ -16,16 +17,19 @@ class Consumer:
         self._closest_station_id = closest_station_id
         self._closest_station_distance = closest_station_distance
         self._power_status = 0
+        self._prosumer = 0
 
 
 class Prosumer(Consumer):
     """[summary]
+        Prosumer class
     """
 
     def __init__(self, id, consumption, closest_station_id, closest_station_distance, power_status, turbine_status):
         super().__init__(id, consumption, closest_station_id,
                          closest_station_distance, power_status)
 
+        self._prosumer = 1
         self._wind = 0
         self._turbine_status = turbine_status
         self._production = 0
@@ -48,6 +52,7 @@ class Prosumer(Consumer):
 
 class PowerPlant:
     """[summary]
+        Power plant class
     """
 
     def __init__(self, id, production, status, buffert_capacity, buffert_content):
@@ -59,6 +64,7 @@ class PowerPlant:
 
 class Buffert:
     """[summary]
+        Buffert class used by outer classes to represend a buffert
     """
 
     def __init__(self, capacity, content):
@@ -204,6 +210,9 @@ def check(consumer_households_in_siumulation, prosumer_households_in_siumulation
         cursor.execute(sql_select_Query)
         records = cursor.fetchall()
 
+        consumer_households_in_siumulation, prosumer_households_in_siumulation = check_prosumer_change(consumer_households_in_siumulation,
+                                                                                                       prosumer_households_in_siumulation)
+
         for row in records:
             count += 1
 
@@ -228,6 +237,73 @@ def check(consumer_households_in_siumulation, prosumer_households_in_siumulation
             connection.close()
             cursor.close()
             return consumer_households_in_siumulation, prosumer_households_in_siumulation
+
+
+def check_prosumer_change(consumer_households_in_siumulation, prosumer_households_in_siumulation):
+    """[summary]
+        Checks if a user has changed prosumer status.
+
+    Args:
+        consumer_households_in_siumulation ([list]): [List of current consumers in the simulation]
+        prosumer_households_in_siumulation ([list]): [List of current prosumers in the simulation]
+
+    Returns:
+        [list]: [A new list of current consumers in the simulation and current prosumers in the simulation]
+    """
+    try:
+        connection = mysql.connector.connect(host='localhost',
+                                             database='m7011e',
+                                             user='root',
+                                             password='')
+        sql_select_Query = "select * from user"
+        # MySQLCursorDict creates a cursor that returns rows as dictionaries
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute(sql_select_Query)
+        records = cursor.fetchall()
+
+        for row in records:
+            prosumer = row["prosumer"]
+            user_id = row["user_id"]
+            consumer_households_in_siumulation, prosumer_households_in_siumulation = convert_house_hold(
+                consumer_households_in_siumulation, prosumer_households_in_siumulation, user_id, prosumer)
+
+    except Error as e:
+        print("Error reading data from MySQL table", e)
+    finally:
+        if connection.is_connected():
+            connection.close()
+            cursor.close()
+            return consumer_households_in_siumulation, prosumer_households_in_siumulation
+
+
+def convert_house_hold(consumer_households_in_siumulation, prosumer_households_in_siumulation, user_id, prosumer):
+    """[summary]
+
+    Args:
+        consumer_households_in_siumulation ([list]): [List of current consumers in the simulation]
+        prosumer_households_in_siumulation ([list]): [List of current prosumers in the simulation]
+        user_id ([int]): [id of the user]
+        prosumer ([int]): [prosumer status]
+
+    Returns:
+        [list]: [A new list of current consumers in the simulation and current prosumers in the simulation]
+    """
+    for house_hold in consumer_households_in_siumulation:
+        if house_hold._id == user_id:
+            if house_hold._prosumer == prosumer:
+                continue
+            consumer_households_in_siumulation.remove(house_hold)
+            prosumer_households_in_siumulation.append(Prosumer(house_hold._id, 0, house_hold._closest_station_id,
+                                                               house_hold._closest_station_distance, 1, 0))
+    for house_hold in prosumer_households_in_siumulation:
+        if house_hold._id == user_id:
+            if house_hold._prosumer == prosumer:
+                continue
+            prosumer_households_in_siumulation.remove(house_hold)
+            consumer_households_in_siumulation.append(Consumer(house_hold._id, 0, house_hold._closest_station_id,
+                                                               house_hold._closest_station_distance, 1))
+
+    return consumer_households_in_siumulation, prosumer_households_in_siumulation
 
 
 def add_new_user(consumer_households_in_siumulation, prosumer_households_in_siumulation):
@@ -281,10 +357,10 @@ def remove_user_from_database(request, **data):
         Takes on an request and removes that user from the database.
 
     Args:
-        request ([type]): [description]
+        request ([WSGI request]): []
 
     Returns:
-        [type]: [description]
+        [Response]: [-1 if failed, 1 if success]
     """
     try:
         connection = mysql.connector.connect(host='localhost',
@@ -384,6 +460,15 @@ def remove_element(list, remove):
 
 
 def register(request, **data):
+    """[summary]
+        Add a regesterd user to the database.
+
+    Args:
+        request ([WSGI request]): [request containing information]
+
+    Returns:
+        [Response]: [-1 if failed, 1 if succes]
+    """
     try:
         connection = mysql.connector.connect(host='localhost',
                                              database='m7011e',
@@ -412,13 +497,13 @@ def register(request, **data):
 
 def login(request, **data):
     """[summary]
-        Checks login credentials from the database
+        Check if user login credentials is correct
 
     Args:
-        request ([type]): [description]
+        request ([WSGI request]): [request containing information]
 
     Returns:
-        [type]: [description]
+        [Response]: [-1 if failed, 1 if succes]
     """
     try:
         connection = mysql.connector.connect(host='localhost',
@@ -443,8 +528,16 @@ def login(request, **data):
             return Response(f"{records}")
 
 
-# TODO ADD ADMIN TABLE IN DATABASE
 def admin_login(request, **data):
+    """[summary]
+        Check if admin login credentials is correct
+
+    Args:
+        request ([WSGI request]): [request containing information]
+
+    Returns:
+        [Response]: [-1 if failed, 1 if succes]
+    """
     try:
         connection = mysql.connector.connect(host='localhost',
                                              database='m7011e',
@@ -527,7 +620,71 @@ def upload_user_pic(pic_name, user_id):
             return Response(f"{cursor.rowcount}")
 
 
+def change_user_info(user_id, info, row):
+    """[summary]
+        Change user information in database and update simulation if required.
+    Args:
+        user_id ([int]): [User id]
+        info ([Any]): [What to update to]
+        row ([type]): [What row in the database to update]
+
+    Returns:
+        [Response]: [Returns error if failed. Else response successfully]
+    """
+    try:
+        connection = mysql.connector.connect(host='localhost',
+                                             database='m7011e',
+                                             user='root',
+                                             password='')
+
+        # MySQLCursorDict creates a cursor that returns rows as dictionaries
+        cursor = connection.cursor()
+        # MySQLCursorDict creates a cursor that returns rows as dictionaries
+        cursor = connection.cursor(dictionary=True)
+        if row == 'user_name':
+            cursor.execute(
+                'UPDATE user SET user_name=%s WHERE user_id=%s', (info, user_id,))
+
+        if row == 'password':  # HOW???? NEED HASH + salt from frontend
+            cursor.execute(
+                'UPDATE user SET password=%s WHERE user_id=%s', (info, user_id,))
+
+        if row == 'email':
+            cursor.execute(
+                'UPDATE user SET email=%s WHERE user_id=%s', (info, user_id,))
+
+        if row == 'adddress+zipcode':  # HOW
+            cursor.execute(
+                'UPDATE user SET address=%s, zipcode=%s WHERE user_id=%s', (info[0], info[1], user_id,))
+
+        if row == 'prosumer':
+            cursor.execute(
+                'UPDATE user SET prosumer=%s WHERE user_id=%s', (info, user_id,))
+            cursor.execute(
+                'UPDATE house_hold SET prosumer=%s WHERE user_user_id=%s', (info, user_id,))
+
+        connection.commit()
+
+    except Error as e:
+        print("parameterized query failed {}".format(e))
+    finally:
+        if connection.is_connected():
+            connection.close()
+            cursor.close()
+            return Response(f"{cursor}")
+
+
 def get_user_pic(user_id, table):
+    """[summary]
+        Gets users profile picture
+
+    Args:
+        user_id ([int]): [User id]
+        table ([string]): [Table target]
+
+    Returns:
+        [string]: [Filename]
+    """
     try:
         connection = mysql.connector.connect(host='localhost',
                                              database='m7011e',
