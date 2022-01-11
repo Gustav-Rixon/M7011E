@@ -1,14 +1,15 @@
 import json
 from time import sleep
 from Backend.resources.RateLimited import rate_limited
+from Backend.resources.GpsNominatim import get_data
 from Backend.resources.Functions import calc_temp, calc_wind, calc_electricity_consumption, calc_production, check_JWT
 from werkzeug.wrappers import Request, Response
-from Backend.Lorax import create_house_holds_objects, create_power_plants_objects, register, login, add_house_hold, admin_login, check, remove_user_from_database, remove_user_from_simulation, upload_user_pic, get_user_pic
+from Backend.Lorax import create_house_holds_objects, create_power_plants_objects, register, login, add_house_hold, admin_login, check, remove_user_from_database, remove_user_from_simulation, upload_user_pic, get_user_pic, change_user_info
 from Backend.Market import Market
 from werkzeug.wrappers import Request, Response
 from werkzeug.routing import Map, Rule
 from werkzeug.wsgi import responder
-from werkzeug.utils import secure_filename
+from werkzeug.utils import redirect, secure_filename
 import os
 
 global_household_list = []
@@ -455,6 +456,46 @@ class SimulatorEndPoints:
             return Response("Unauthorised")
         return Response("Wrong request method")
 
+    def change_user_credentials(request):
+        if request.method == 'POST':
+            if check_JWT(request.args.get('token'), int(request.args.get('id')), adminKey):
+
+                if request.args.get('user_name'):
+                    change_user_info(request.args.get(
+                        'target_id'), request.args.get('user_name'), request.args.get('target_row'))
+                    return Response(f"user_name for id {request.args.get('target_id')} changed")
+
+                if request.args.get('password'):
+                    change_user_info(request.args.get(
+                        'target_id'), request.args.get('user_name'), request.args.get('target_row'))
+                    return Response(f"password for id {request.args.get('target_id')} changed")
+
+                if request.args.get('email'):
+                    change_user_info(request.args.get(
+                        'target_id'), request.args.get('user_name'), request.args.get('target_row'))
+                    return Response(f"email for id {request.args.get('target_id')} changed")
+
+                if request.args.get('address') and request.args.get('zipcode'):
+                    data = get_data(request.args.get('address'),
+                                    request.args.get('zipcode'))
+                    if len(data) == 0:
+                        return Response("Address not found")
+                    change_user_info(request.args.get(
+                        'target_id'), [request.args.get('address'), request.args.get('zipcode')], "address+zipcode")
+                    return Response("Address changed")
+
+                if request.args.get('prosumer'):
+                    change_user_info(request.args.get(
+                        'target_id'), request.args.get('user_name'), request.args.get('target_row'))
+                    return Response(f"prosumer for id {request.args.get('target_id')} changed")
+
+                if request.args.get('user_pic'):
+                    responese = SimulatorEndPoints.upload_file(request)
+                    return Response(str(responese))
+
+            return Response("Unauthorised or bad request")
+        return Response("Wrong request method")
+
     @responder
     def application(environ, start_response):
         """[summary]
@@ -500,6 +541,7 @@ class SimulatorEndPoints:
             Rule('/test/username=<string:username>', endpoint='test'),
             Rule('/test', endpoint='test2'),
             Rule('/uploader', endpoint='uploader'),
+            Rule('/admin/tool/change_user_info', endpoint='change_user_info'),
             Rule('/user/get_user_pic', endpoint='get_user_pic')
         ])
 
@@ -519,7 +561,8 @@ class SimulatorEndPoints:
                  'change_buffert_to_market': SimulatorEndPoints.change_ratio_to_market,
                  'uploader': SimulatorEndPoints.upload_file,
                  'admin_view': SimulatorEndPoints.admin_view,
-                 'get_user_pic': SimulatorEndPoints.get_pic}
+                 'get_user_pic': SimulatorEndPoints.get_pic,
+                 'change_user_info': SimulatorEndPoints.change_user_credentials}
 
         request = Request(environ)
         urls = url_map.bind_to_environ(environ)
