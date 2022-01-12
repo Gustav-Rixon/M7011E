@@ -219,16 +219,13 @@ def check(consumer_households_in_siumulation, prosumer_households_in_siumulation
             count += 1
 
         if count == check:
-            print("¤¤¤¤¤¤¤¤¤¤¤¤¤¤__NO__CHANGE__¤¤¤¤¤¤¤¤¤¤¤¤¤¤")
             pass
 
         if count > check:
-            print("¤¤¤¤¤¤¤¤¤¤¤¤¤¤__CHANGE__ADDING__USER__¤¤¤¤¤¤¤¤¤¤¤¤¤¤")
             consumer_households_in_siumulation, prosumer_households_in_siumulation = add_new_user(
                 consumer_households_in_siumulation, prosumer_households_in_siumulation)
 
         if count < check:
-            print("¤¤¤¤¤¤¤¤¤¤¤¤¤¤__CHANGE__REMOVING__USER__¤¤¤¤¤¤¤¤¤¤¤¤¤¤")
             consumer_households_in_siumulation, prosumer_households_in_siumulation = remove_user_from_simulation(
                 consumer_households_in_siumulation, prosumer_households_in_siumulation)
 
@@ -590,6 +587,7 @@ def change_user_info(user_id, info, row):
         connection = database_cred()
         cursor = connection.cursor()
         cursor = connection.cursor(dictionary=True)
+
         if row == 'user_name':
             cursor.execute(
                 'UPDATE user SET user_name=%s WHERE user_id=%s', (info, user_id,))
