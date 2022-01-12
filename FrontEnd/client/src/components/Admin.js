@@ -16,21 +16,12 @@ function Admin() {
               if(response.data.message){
                 setLoginStatus(response.data.message)
               }else{
-                localStorage.setItem("token", response.data.token)
+                localStorage.setItem("admintoken", response.data.token)
+                localStorage.setItem("adminid", 1)
+                navigate('/AdminPage');
               }
             }).catch(err => err);
         };
-
-        const authenticated = () =>{
-          Axios.get("http://localhost:3001/Authenticated", {
-            headers:{
-              "x-access-token": localStorage.getItem("token")
-          }}).then((response)=>{
-            if(response.data = 1){
-            }
-
-          }).catch(err => err);
-        }
         return (
                 <div className="Login">
                     <h1> Kolfall </h1>
@@ -44,7 +35,6 @@ function Admin() {
         } } />
         <button onClick={submitLogin}> Login</button>
         <h1>{loginStatus}</h1>
-        <button onClick={authenticated}>check if auth</button>
         
       </div>
         );

@@ -1,11 +1,10 @@
 import React, {useEffect, useState} from "react";
-import Axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import ReactSlider from 'react-slider'
-Axios.defaults.withCredentials = false;
-//TODO fixa sälj update ratio + bild
-function LoginPage() { 
+import axios from "axios";
+axios.defaults.withCredentials = false;
 
+function LoginPage() { 
         const navigate = useNavigate();
         const id = localStorage.getItem("id");
         const[ratio, setRatio] = useState("NaN");
@@ -17,62 +16,82 @@ function LoginPage() {
         const[buffer, setBuffer] = useState("NaN");
         const[bufferCap, setBufferCap] = useState("NaN");
         const[temp, setTemp] = useState("NaN");
+        const[picBase, setpicBase] = useState("");
         const[netProd, setNetProd] = useState("0")
         const[marketprice, setmarketprice] = useState("0")
-        const[pictureURL, setPictureURL] = useState("");
-        const token = localStorage.getItem('id_token');
+        const[selectedFile, setSelectedFile] = useState();
+        const[isSelected, setIsSelected] = useState(false);
+
+	const changeHandler = (event) => {
+
+		setSelectedFile(event.target.files[0]);
+
+		setIsSelected(true);
+
+	};
+
+  //TODO skicka från index.js
+	const handleSubmission = () => {
+    var data = new FormData();
+      data.append('file', selectedFile);
+      data.append('userid', localStorage.getItem("id"));
+      var config = {
+        method: 'POST',
+        url: 'http://127.0.0.1:5000/uploader',
+        data : data
+      };
+    
+    axios(config)
+    .then(function (response) {
+      console.log(JSON.stringify(response.data));
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+
+	};
+  //"../../../../Documents/GitHub/M7011E/Database/ProfilePictures/users/" 
+  const getPicture = () =>{
+    const type = "user";
+    console.log(localStorage.getItem("id"))
+    console.log(localStorage.getItem("token"))
+    console.log(type)
+    axios.post("http://localhost:3001/picture", {
+      id: localStorage.getItem("id"),
+      token: localStorage.getItem("token"),
+      type: type
+    }).then((response)=> {
+      if(response.data) {
+        setpicBase(response.data)
+      }else{
+      }
+
+    }).catch(err => err);
+  };
 
         const submitSale = () => {
-            console.log("got here")
-            Axios.post("http://localhost:3001/sell", {
+            axios.post("http://localhost:3001/sell", {
               sell: sell,
-              headers:{
-                "x-access-token": localStorage.getItem("token"),
-                "user-id": localStorage.getItem("id")
-              }
+              token: localStorage.getItem("token"),
+              id: localStorage.getItem("id")
             }).then((response)=> {
-              if(response.data.message){
-              console.log(response.data.message + sell)
-              }else{
-                console.log(response.data.alert)
-              }
+              alert(response.data.message)
+              getData()
             }).catch(err => err);
         };
         const submitRatio = () => {
-          console.log(ratio)
-          Axios.post("http://localhost:3001/ratio", {
-            id: id,
-            token: token,
-            ratio: ratio,
-            headers:{
-              "x-access-token": localStorage.getItem("token"),
-              "user-id": localStorage.getItem("id")
-            }
+          axios.post("http://localhost:3001/ratio", {
+            tempratio: tempratio,
+            token: localStorage.getItem("token"),
+            id: localStorage.getItem("id")
           }).then((response)=> {
-            if(response.data.message){
-              //setLoginStatus(response.data.message)
-            }else{
-            
-            }
-          }).catch(err => err);
-      };
-        const submitPicture = () =>{
-          Axios.post("http://localhost:3001/picture", {
-            pictureURL: pictureURL,
-            headers:{
-              "x-access-token": localStorage.getItem("token"),
-              "user-id": localStorage.getItem("id")
-            }
-          }).then((response)=> {
-            if(response.data.message){
-              //setLoginStatus(response.data.message)
-            }else{
-              console.log("have to put stuff here")
+            if(response){
+              getData()
             }
           }).catch(err => err);
       };
       const getData = () =>{
-        Axios.get("http://localhost:3001/mydata", {
+        axios.get("http://localhost:3001/mydata", {
           headers:{
             "x-access-token": localStorage.getItem("token"),
             "user-id": localStorage.getItem("id")
@@ -86,61 +105,97 @@ function LoginPage() {
             setBuffer(response.data.data[id][0].buffert_content)
             setBufferCap(response.data.data[id][0].buffert_capacity)
             setConsumption(response.data.data[id][0].consumption)
-            const temp = parseFloat(production)
-            const temp2 = parseFloat(consumption)
-            setNetProd(temp - temp2)
+            setNetProd(response.data.data[id][0].net_production)
           }else{
+            localStorage.setItem("token", null)
+            localStorage.setItem("id", null)
             navigate("/sign-in")
             alert("You have timed out please log in again")
           }
         }).catch(err => err);
     };
     const getMarketData = () =>{
-      Axios.get("http://localhost:3001/marketdata", {
+      axios.get("http://localhost:3001/marketdata", {
       }).then((response)=> {
         setmarketprice(response.data.data["Market Info"][0].market_price)
         }).catch(err => err);
   };
+    const logout = () =>{
+      axios.post("http://localhost:3001/logout", {
+        id: localStorage.getItem("id")
+      }).then(
+        localStorage.setItem("token", null),
+        localStorage.setItem("id", null),
+        navigate("/sign-in")
+        ).catch(err => err);
+    };
+  
 
       useEffect(() => {
+        getPicture()
         getData()
         getMarketData()
         const interval = setInterval(() => {
           getData()
+          getMarketData()
         }, 10000);
 
         return () => clearInterval(interval); // This represents the unmount function, in which you need to clear your interval to prevent memory leaks.
       }, [])
         return (
-                <div className="LoginPage">
-        <h1>Welcome to Kolfall</h1>
-        <h1>Your personal data:</h1>
-        <h1>Wind:{wind}  m/s</h1>
-        <h1>Temperature:{temp} C</h1>
-        <h1>Cosumption:{consumption}   kW/h</h1>
-        <h1>Production:{production}   kW/h</h1>
-        <h1>Net Production:{netProd}   kW/h</h1>
-        <h1>Buffer:{buffer}/{bufferCap}  kW/h</h1>
-        <h1>Current market price:{marketprice}kr per kW/h</h1>
-        <label> Sell </label>
-        <input type="text" name="sell"  onChange={(event) => {
-          setSell(event.target.value);
-        } } />
-        <button onClick={submitSale}> Sell</button>
-        <label> Picture URL </label>
-        <input type="text" name="pictureUrl"  onChange={(event) => {
-          setPictureURL(event.target.value);
-        } } />
-        <button onClick={submitPicture}> Submit picture</button>  
-        <h1>Ratio:{ratio}</h1>
+        <div className="LoginPage">
+          <button onClick={logout}> logout</button>
+          <h1>Welcome to Kolfall</h1>
+          <img src={`data:image/jpeg;base64,${picBase}`} />
+          <h1>----------------------Your personal data---------------------</h1>
+          <h1>Wind:{wind}  m/s</h1>
+          <h1>Temperature:{temp} °C</h1>
+          <h1>Cosumption:{consumption}   kWh</h1>
+          <h1>Production:{production}   kWh</h1>
+          <h1>Net Production:{netProd}   kWh</h1>
+          <h1>Buffer:{buffer}/{bufferCap}  kWh</h1>
+          <h1>Current market price:{marketprice}kr per kWh</h1>
+            <h1> ---------------------------Prosumer Actions ---------------------------</h1>
+            <label> Sell from your buffer</label>
+              <input type="text" name="sell"  onChange={(event) => {
+                setSell(event.target.value);
+              } } />
+                <button onClick={submitSale}> Sell</button>
+                <h1>Ratio:{ratio*100}%</h1>
         <button onClick={submitRatio}> Confirm new ratio</button>
         <ReactSlider
     className="horizontal-slider"
     thumbClassName="example-thumb"
     trackClassName="example-track"
-    onAfterChange={(value, index) => setTempRatio(value/100)}
+    onAfterChange={(value, index) => setTempRatio(value)}
     renderThumb={(props, state) => <div {...props}>{state.valueNow}</div>}
 />
+           <h1> ---------------------------Uppload Picture---------------------------</h1>    
+                <input type="file" name="file" onChange={changeHandler} />
+
+{isSelected ? (
+
+  <div>
+
+    <p>Filename: {selectedFile.name}</p>
+
+    <p>Filetype: {selectedFile.type}</p>
+
+    <p>Size in bytes: {selectedFile.size}</p>
+
+  </div>
+
+) : (
+
+  <p>Select a file to show details</p>
+
+)}
+
+<div>
+
+  <button onClick={handleSubmission}>Submit</button>
+
+</div>
       </div>
         );
 }
