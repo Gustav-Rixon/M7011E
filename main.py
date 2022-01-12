@@ -8,7 +8,7 @@ if __name__ == "__main__":
     """
     sim = Simulator.Simulator()
     smhi = GetDataFromSMHIApi.get_data_from_station()
-
+    #sim._debugmode = True
     x = threading.Thread(target=sim.run)
     x.daemon = True
     x.start()

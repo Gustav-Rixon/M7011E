@@ -94,6 +94,7 @@ class Simulator:
         self._simulator_market = 0
         self._consumer_households_in_siumulation = []
         self._prosumer_households_in_siumulation = []
+        self._debugmode = False
 
     def setupSim():
         """[summary]
@@ -240,9 +241,7 @@ class Simulator:
             market_status = self._simulator_market.update_market(
                 simulator_production-simulator_consumption)
 
-            debugmode = False
-
-            if debugmode == True:
+            if self._debugmode == True:
 
                 print("RUNNING")
 
