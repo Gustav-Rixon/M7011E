@@ -43,7 +43,7 @@ function Register() {
         <div className="Register">    
         <h1> Kolfall </h1>
         <h2>Register</h2>
-        <label> Name </label>
+        <label> Username </label>
         <input type="text" name="name" onChange={(event) => {
           setName(event.target.value);
         } } />

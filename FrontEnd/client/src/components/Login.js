@@ -22,21 +22,6 @@ function Login() {
               }
             }).catch(err => err);
         };
-
-        const authenticated = () =>{
-          Axios.get("http://localhost:3001/Authenticated", {
-            headers:{
-              "x-access-token": localStorage.getItem("token")
-          }}).then((response)=>{
-            console.log(response.data);
-            if(response.data = 1){
-            }
-            else{
-              console.log(response.data)
-            }
-
-          }).catch(err => err);
-        }
         return (
                 <div className="Login">
                     <h1> Kolfall </h1>
@@ -50,7 +35,6 @@ function Login() {
         } } />
         <button onClick={submitLogin}> Login</button>
         <h1>{loginStatus}</h1>
-        <button onClick={authenticated}>check if auth</button>
         
       </div>
         );

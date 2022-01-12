@@ -5,7 +5,8 @@ import React, { Component }  from 'react';
 import Login from "./components/Login.js";
 import Register from "./components/Register.js";
 import Admin from "./components/Admin.js";
-import LoginPage from './components/LoginPage';
+import LoginPage from './components/LoginPage.js';
+import AdminPage from './components/AdminPage.js';
 
 
 function App() {
@@ -32,6 +33,7 @@ function App() {
             <Route path="/sign-in" element={<Login/>} />
             <Route path="/sign-up" element={<Register/>}/>
             <Route path="/admin" element={<Admin/>}/>
+            <Route path="/AdminPage" element={<AdminPage/>}/>
             <Route path="/LoginPage" element={<LoginPage/>}/>
           </Routes>
         </div>
