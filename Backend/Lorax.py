@@ -60,8 +60,14 @@ class PowerPlant:
     def __init__(self, id, production, status, buffert_capacity, buffert_content):
         self._id = id
         self._production = production
-        self._status = status
+        self._status = status  # 0 = off, 1 = starting up, 2 = on
         self._buffert = Buffert(buffert_capacity, buffert_content)
+
+    def turn_on(self):
+        self._status = 1
+
+    def turn_off(self):
+        pass
 
 
 class Buffert:
@@ -554,13 +560,20 @@ def add_house_hold(username):
             return Response(f"{cursor.rowcount}")
 
 
-def upload_user_pic(pic_name, user_id):
+def upload_user_pic(pic_name, user_id, type):
     try:
         connection = database_cred()
         cursor = connection.cursor()
         cursor = connection.cursor(dictionary=True)
-        cursor.execute(
-            'UPDATE user SET user_pic=%s WHERE user_id=%s', (pic_name, user_id,))
+
+        if type == "admin":
+            cursor.execute(
+                'UPDATE admin SET user_pic=%s WHERE user_id=%s', (pic_name, user_id,))
+
+        else:
+            cursor.execute(
+                'UPDATE user SET user_pic=%s WHERE user_id=%s', (pic_name, user_id,))
+
         connection.commit()
 
     except Error as e:
