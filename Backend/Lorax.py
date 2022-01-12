@@ -602,7 +602,7 @@ def change_user_info(user_id, info, row):
             cursor.execute(
                 'UPDATE user SET email=%s WHERE user_id=%s', (info, user_id,))
 
-        if row == 'adddress+zipcode':  # HOW
+        if row == 'address_zipcode':  # HOW
             cursor.execute(
                 'UPDATE user SET address=%s, zipcode=%s WHERE user_id=%s', (info[0], info[1], user_id,))
 

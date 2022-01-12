@@ -514,9 +514,9 @@ class SimulatorEndPoints:
             if check_JWT(request.args.get('token'), int(request.args.get('id')), adminKey):
 
                 if request.args.get('user_name'):
-                    change_user_info(request.args.get(
+                    res = change_user_info(request.args.get(
                         'target_id'), request.args.get('user_name'), request.args.get('target_row'))
-                    return Response(f"user_name for id {request.args.get('target_id')} changed")
+                    return Response(f"{res}")
 
                 if request.args.get('password'):
                     res = change_user_info(request.args.get(
@@ -534,7 +534,7 @@ class SimulatorEndPoints:
                     if len(data) == 0:
                         return Response("Address not found")
                     change_user_info(request.args.get(
-                        'target_id'), [request.args.get('address'), request.args.get('zipcode')], "address+zipcode")
+                        'target_id'), [request.args.get('address'), request.args.get('zipcode')], request.args.get('target_row'))
                     return Response("Address changed")
 
                 if request.args.get('prosumer'):
