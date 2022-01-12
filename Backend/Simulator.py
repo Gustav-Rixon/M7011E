@@ -9,17 +9,15 @@ from Backend.Market import Market
 from werkzeug.wrappers import Request, Response
 from werkzeug.routing import Map, Rule
 from werkzeug.wsgi import responder
-from werkzeug.utils import redirect, secure_filename
+from werkzeug.utils import secure_filename
 import os
 import base64
+import random
 
 global_household_list = []
 global_power_plant_list = []
 global_event_list = []
 global_market = Market(0)
-fixed_price = 10
-key = "Test"
-adminKey = "admin"
 
 
 class Events:
@@ -57,17 +55,30 @@ class Events:
             return e
 
     # event id 3 - blackout
-
     def blackout_whole_network():
         global global_household_list
         for household in global_household_list:
             household._power_status = 0
+            household._blackout = 1
 
     # event id 4 - blackout
     def remove_blackout():
         global global_household_list
         for household in global_household_list:
+            if household._blackout_duration > 0:
+                household._blackout_duration -= 1
+                continue
             household._power_status = 1
+
+    def blackout_house_hold():
+        global global_household_list
+        target = random.randint(1, len(global_household_list))
+        number_of_cycels = random.randint(1, 10)
+        for household in global_household_list:
+            if household._id == target:
+                household._power_status = 0
+                household._blackout_duration = number_of_cycels
+                household._consumption = 0
 
 
 class Simulator:
@@ -96,6 +107,14 @@ class Simulator:
         power_plant_list = create_power_plants_objects()
         return list_of_consumer, list_of_prosumer, power_plant_list
 
+    def get_JWC_keys():
+        global key
+        global adminKey
+        f = open('conf/configuration.json')
+        data = json.load(f)
+        adminKey = data.get("JWT_KEYS").get("admin_key")
+        key = data.get("JWT_KEYS").get("user_key")
+
     def calc_consumer(list_of_consumer):
         """[summary]
             Calcualates how much all the consumers consume.
@@ -108,6 +127,10 @@ class Simulator:
         """
         total_consumer_consumption = 0
         for consumer in list_of_consumer:
+
+            if consumer._blackout_duration > 0:
+                continue
+
             consumer._temp = calc_temp(
                 consumer._closest_station_id, consumer._closest_station_distance)
             consumer._consumption = calc_electricity_consumption(
@@ -128,6 +151,7 @@ class Simulator:
         total_prosumer_consumption = 0
         total_prosumer_production = 0
         for prosumer in list_of_prosumer:
+
             prosumer._wind = calc_wind(
                 prosumer._closest_station_id, prosumer._closest_station_distance)
             prosumer._production = calc_production(
@@ -138,17 +162,16 @@ class Simulator:
                 prosumer._temp)
 
             if prosumer._production > prosumer._consumption:  # Only send to buffert when condison is meet
-                # TODO In case of excessive production, Prosumer should be able to control the ratio of how much should be sold to the market and how much should be sent to the buffer
                 prosumer._buffert.content += (prosumer._production -
                                               prosumer._consumption)*(1-prosumer._ratio_to_market)
                 global_market.market_buffert.content = (prosumer._production -
                                                         prosumer._consumption)*prosumer._ratio_to_market
 
-            if prosumer._consumption > prosumer._production:  # TODO REMOVE UNDERSKOTT FRÅN BUFFERT
+            if prosumer._consumption > prosumer._production:
                 prosumer._buffert.content -= abs(prosumer._production -
                                                  prosumer._consumption)
 
-            if prosumer._buffert.content < 0:  # cant have 0 power
+            if prosumer._buffert.content < 0:  # cant have negetiv power
                 prosumer._buffert.content = 0
 
             total_prosumer_consumption += prosumer._consumption
@@ -177,6 +200,7 @@ class Simulator:
         """[summary]
 
         """
+        Simulator.get_JWC_keys()
         self._consumer_households_in_siumulation, self._prosumer_households_in_siumulation, self._power_plant = Simulator.setupSim()
         self._simulator_market = Market(1000)
 
@@ -190,15 +214,18 @@ class Simulator:
         global_power_plant_list = self._power_plant
         global_market = self._simulator_market
 
-        # global_event_list.append(Events.change_production)
-
         while True:
 
             print("RUNNING")
             self._consumer_households_in_siumulation, self._prosumer_households_in_siumulation = check(self._consumer_households_in_siumulation,
                                                                                                        self._prosumer_households_in_siumulation)
+
+            Events.blackout_house_hold()
+            Events.remove_blackout()
+
             global_household_list = self._consumer_households_in_siumulation + \
                 self._prosumer_households_in_siumulation
+
             simulator_consumption, simulator_production = Simulator.calc_prosumer(
                 self._prosumer_households_in_siumulation)
 
@@ -211,12 +238,6 @@ class Simulator:
             market_status = self._simulator_market.update_market(
                 simulator_production-simulator_consumption)
 
-            if self._simulator_market.market_buffert.content == 0:
-                Events.blackout_whole_network()
-
-            if self._simulator_market.market_buffert.content > 0:
-                Events.remove_blackout()
-
             for object in self._consumer_households_in_siumulation:
                 print(
                     f"CONSUMER id:{object._id} status:{object._power_status}")
@@ -227,6 +248,9 @@ class Simulator:
                     f"PROSUMER id:{object._id} status:{object._power_status} buffert:{object._buffert.content} consumption:{object._consumption} production:{object._production}")
 
             print(f"markut status {market_status}")
+
+            global_market.calculate_recommended_electricity_price(
+                simulator_consumption, len(global_household_list))
 
             print("############current_consumption##############")
             print(simulator_consumption)
@@ -243,8 +267,6 @@ class Simulator:
         # set_temp(0,"Strandv%C3%A4gen%205", "104%2040")
 
 
-# TODO MAKE METHODS ONYL RESPOND IF CORRECT GET/POST IS USED
-# TODO ADD TOKEN FROM FRONTEND
 class SimulatorEndPoints:
     """[summary]
         Contains all the API endpoints and their handels theres requests.
@@ -253,11 +275,13 @@ class SimulatorEndPoints:
     # @rate_limited(1/10, mode='kill')
     def on_change_power_plant_output(request):
         if request.method == ('POST'):
-            error = Events.change_production(request.args.get(
-                'id'), request.args.get('power'))
-            if error:
-                return Response(str(error))
-            return Response(f"burning {request.args.get('id')}, {request.args.get('power')} hamsters insted")
+            if check_JWT(request.args.get("token"), request.args.get('id'), adminKey):
+                error = Events.change_production(request.args.get(
+                    'id'), request.args.get('power'))
+                if error:
+                    return Response(str(error))
+                return Response(f"burning {request.args.get('id')}, {request.args.get('power')} hamsters insted")
+            return Response("Unauthorised")
         return Response("Wrong request method")
 
     def buy(request, **data):
@@ -294,35 +318,47 @@ class SimulatorEndPoints:
 
     @rate_limited(1/10, mode='kill')  # FIX
     def change_market_size(request, **data):
-        global global_market
-        Market.change_market_size(global_market, data.get('size'))
-        return Response(f"Changning market size to {data.get('size')} hamsters insted")
+        if request.method == ('POST'):
+            if check_JWT(data.get("token"), data.get('id'), adminKey):
+                global global_market
+                Market.change_market_size(global_market, data.get('size'))
+                return Response(f"Changning market size to {data.get('size')} hamsters insted")
+            return Response("Unauthorised")
+        return Response("Wrong request method")
 
     def block_user(request, **data):
-        global global_household_list
-        cycle = data.get('cycle')
-        id = data.get('id')
-        if cycle <= 0:
-            return Response("You need a pos int!")
+        if request.method == ('POST'):
+            if check_JWT(data.get("token"), data.get('id'), adminKey):
+                global global_household_list
+                cycle = data.get('cycle')
+                id = data.get('id')
+                if cycle <= 0:
+                    return Response("You need a pos int!")
 
-        for house_hold in global_household_list:
-            if house_hold._id == id:
-                house_hold._blocked_number_of_cykels = cycle
-                house_hold._blocked_status = True
-                return Response(f"user{id} blocked for {cycle} cycles")
+                for house_hold in global_household_list:
+                    if house_hold._id == id:
+                        house_hold._blocked_number_of_cykels = cycle
+                        house_hold._blocked_status = True
+                        return Response(f"user{id} blocked for {cycle} cycles")
+            return Response("Unauthorised")
+        return Response("Wrong request method")
 
     def remove_block(request, **data):
-        global global_household_list
-        cycle = data.get('cycle')
-        id = data.get('id')
-        if cycle <= 0:
-            return Response("You need a pos int!")
+        if request.method == ('POST'):
+            if check_JWT(data.get("token"), data.get('id'), adminKey):
+                global global_household_list
+                cycle = data.get('cycle')
+                id = data.get('id')
+                if cycle <= 0:
+                    return Response("You need a pos int!")
 
-        for house_hold in global_household_list:
-            if house_hold._id == id:
-                house_hold._blocked_number_of_cykels = cycle
-                house_hold._blocked_status = True
-                return Response(f"user{id} blocked for {cycle} cycles")
+                for house_hold in global_household_list:
+                    if house_hold._id == id:
+                        house_hold._blocked_number_of_cykels = cycle
+                        house_hold._blocked_status = True
+                        return Response(f"user{id} blocked for {cycle} cycles")
+            return Response("Unauthorised")
+        return Response("Wrong request method")
 
     def get_house_hold_data(request, **data):
         """[summary]
@@ -355,10 +391,19 @@ class SimulatorEndPoints:
     def get_market_info(request, **data):
         if request.method == ('GET'):
             global global_market
-            data = {"Market Info": [{"market_size": global_market.market_buffert.capacity,
-                                     "market_content": global_market.market_buffert.content, "market_price": global_market.market_price}]}
-            contents = json.dumps(data, sort_keys=True)
+            data = {"market_size": global_market.market_buffert.capacity,
+                    "market_content": global_market.market_buffert.content, "market_price": global_market.market_price, "recommended": global_market.recommended_market_price}
+            contents = json.dumps(data, sort_keys=False)
             return Response(contents, content_type="application/json")
+        return Response("Wrong request method")
+
+    def change_market_price(request):
+        if request.method == ('GET'):
+            if check_JWT(request.args.get("token"), request.args.get('id'), adminKey):
+                global_market.market_price = int(
+                    request.args.get("market_price"))
+                return Response("Market price changed")
+            return Response("Unauthorised")
         return Response("Wrong request method")
 
     def change_ratio_to_market(request, **data):
@@ -415,15 +460,15 @@ class SimulatorEndPoints:
                 # TODO INSERT FILE PATHE INTO USER TABLE
                 upload_user_pic(request.form.get('userid') +
                                 filename, request.form.get('userid'))
-                return Response("SUUC")
-        return Response("FAILURE")
+                return Response("Picture successfully uploaded")
+        return Response("Wrong method")
 
     def send_file(request):
         file_name = SimulatorEndPoints.get_pic(request)
         UPLOAD_FOLDER = 'Database/ProfilePictures/users/'
         with open(UPLOAD_FOLDER+file_name[0].get("user_pic"), 'rb') as image_file:
             encoded_string = base64.b64encode(image_file.read())
-        return Response(f"{encoded_string}")
+        return Response(encoded_string)
 
     def admin_view(request):
         """[summary]
@@ -441,13 +486,13 @@ class SimulatorEndPoints:
                     if hasattr(house_hold, '_wind'):
                         Net_production = int(
                             house_hold._production) - int(house_hold._consumption)
-                        data.append({house_hold._id: [{"wind": house_hold._wind, "temp": house_hold._temp, "production": house_hold._production, "consumption": house_hold._consumption,
-                                                       "buffert_content": house_hold._buffert.content, "buffert_capacity": house_hold._buffert.capacity, "buffert_ratio": house_hold._ratio_to_market, "power_status": house_hold._power_status, "net_production": Net_production}]})
+                        data.append({"id": house_hold._id, "wind": house_hold._wind, "temp": house_hold._temp, "production": house_hold._production, "consumption": house_hold._consumption,
+                                     "buffert_content": house_hold._buffert.content, "buffert_capacity": house_hold._buffert.capacity, "buffert_ratio": house_hold._ratio_to_market, "power_status": house_hold._power_status, "blackout_duration": house_hold._blackout_duration, "net_production": Net_production})
                     else:
-                        data.append({house_hold._id: [
-                            {"temp": house_hold._temp, "consumption": house_hold._consumption, "power_status": house_hold._power_status}]})
+                        data.append({"id": house_hold._id, "temp": house_hold._temp,
+                                    "consumption": house_hold._consumption, "power_status": house_hold._power_status, "blackout_duration": house_hold._blackout_duration})
 
-                contents = json.dumps(data, sort_keys=True)
+                contents = json.dumps(data, sort_keys=False)
                 return Response(contents, content_type="application/json")
             return Response("Unauthorised")
         return Response("Wrong request method")
@@ -549,8 +594,10 @@ class SimulatorEndPoints:
             Rule('/test/username=<string:username>', endpoint='test'),
             Rule('/test', endpoint='test2'),
             Rule('/uploader', endpoint='uploader'),
-            Rule('/admin/tool/change_user_info', endpoint='change_user_info'),
+            Rule('/admin/tools/change_user_info', endpoint='change_user_info'),
             Rule('/user/get_user_pic', endpoint='get_user_pic'),
+            Rule('/admin/tools/change_market_price',
+                 endpoint='change_market_price')
         ])
 
         views = {'change_power': SimulatorEndPoints.on_change_power_plant_output,
@@ -570,7 +617,8 @@ class SimulatorEndPoints:
                  'uploader': SimulatorEndPoints.upload_file,
                  'admin_view': SimulatorEndPoints.admin_view,
                  'get_user_pic': SimulatorEndPoints.send_file,
-                 'change_user_info': SimulatorEndPoints.change_user_credentials}
+                 'change_user_info': SimulatorEndPoints.change_user_credentials,
+                 'change_market_price': SimulatorEndPoints.change_market_price}
 
         request = Request(environ)
         urls = url_map.bind_to_environ(environ)
