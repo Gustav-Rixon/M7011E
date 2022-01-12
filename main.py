@@ -9,10 +9,10 @@ if __name__ == "__main__":
     sim = Simulator.Simulator()
     smhi = GetDataFromSMHIApi.get_data_from_station()
 
-    x = threading.Thread(target=sim.run(debugmode=True))
+    x = threading.Thread(target=sim.run)
     x.daemon = True
     x.start()
-    y = threading.Thread(target=smhi.update_data(debugmode=True))
+    y = threading.Thread(target=smhi.update_data)
     y.daemon = True
     y.start()
 

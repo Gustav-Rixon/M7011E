@@ -196,7 +196,7 @@ class Simulator:
             total_production += power_plant._production
         return total_production
 
-    def run(self, debugmode):
+    def run(self):
         """[summary]
 
         Args:
@@ -239,6 +239,8 @@ class Simulator:
 
             market_status = self._simulator_market.update_market(
                 simulator_production-simulator_consumption)
+
+            debugmode = False
 
             if debugmode == True:
 
