@@ -9,7 +9,8 @@ class Market:
     def __init__(self, market_size):
         # The market is empty when started
         self.market_buffert = Buffert(market_size, 0)
-        self.market_price = 100  # Starting market price
+        self.market_price = 100  # Starting market price in öre
+        self.recommended_market_price = 0
 
     def update_market(self, amount):
         """[summary]
@@ -51,19 +52,15 @@ class Market:
         """
         self.market_buffert.capacity = amount
 
-    def calculate_electricity_price(self, current_consumption, number_of_users, fixed_price):
+    def calculate_recommended_electricity_price(self, current_consumption, number_of_users):
         """[summary]
-            Calculates the electricity price of the cycle.
+            Calculates the recommended electricity price of the cycle.
 
         Args:
             current_consumption ([int]): [current consumption of the simulation]
             number_of_users ([int]): [number of users in the simulation]
-            fixed_price ([int]): [fixed price from admin]
         """
 
         # Check so that price is not less then fixed price
-        if ((number_of_users*current_consumption) + fixed_price - self.market_buffert.content <= fixed_price):
-            self.market_price = fixed_price
-        else:
-            self.market_price = (
-                number_of_users*current_consumption) + fixed_price - self.market_buffert.content
+        self.recommended_market_price = (
+            number_of_users*current_consumption) - self.market_buffert.content
