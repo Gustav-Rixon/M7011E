@@ -46,7 +46,6 @@ class get_data_from_station:
             This is used by the simulator to updates its SMHI data ones every hour.
         """
         while True:
-            print("UPDATING SMHI DATA")
             get_data_from_station.get_station_data()
             get_data_from_station.get_station_data_wind()
             get_data_from_station.get_station_data_temp()
