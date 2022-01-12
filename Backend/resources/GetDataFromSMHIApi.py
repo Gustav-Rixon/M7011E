@@ -1,6 +1,6 @@
 from time import sleep
 import requests
-from RateLimited import rate_limited
+from Backend.resources.RateLimited import rate_limited
 
 
 class get_data_from_station:
@@ -50,4 +50,4 @@ class get_data_from_station:
             get_data_from_station.get_station_data()
             get_data_from_station.get_station_data_wind()
             get_data_from_station.get_station_data_temp()
-            sleep(60*60*24)
+            sleep(3600)
