@@ -99,7 +99,7 @@ def calc_production(wind):
     Returns:
         [type]: [Production in kWh]
     """
-    return int(wind * 20)
+    return int(wind * 16.5)
 
 
 def check_JWT(token, id, key):
