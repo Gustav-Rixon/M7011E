@@ -37,29 +37,26 @@ function LoginPage() {
       data.append('userid', localStorage.getItem("id"));
       var config = {
         method: 'POST',
-        url: 'http://127.0.0.1:5000/uploader',
+        url: 'http://127.0.0.1:5000/uploader?type=user',
         data : data
       };
     
     axios(config)
     .then(function (response) {
       console.log(JSON.stringify(response.data));
+      alert("reload to see the picture")
     })
     .catch(function (error) {
       console.log(error);
     });
-
+    alert("reload to see the picture")
 	};
   //"../../../../Documents/GitHub/M7011E/Database/ProfilePictures/users/" 
   const getPicture = () =>{
-    const type = "user";
-    console.log(localStorage.getItem("id"))
-    console.log(localStorage.getItem("token"))
-    console.log(type)
     axios.post("http://localhost:3001/picture", {
       id: localStorage.getItem("id"),
       token: localStorage.getItem("token"),
-      type: type
+      type: "user"
     }).then((response)=> {
       if(response.data) {
         setpicBase(response.data)

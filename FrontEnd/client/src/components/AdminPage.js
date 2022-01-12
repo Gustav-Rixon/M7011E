@@ -13,18 +13,22 @@ function clean(value){
   return value;
 }
 //TODO fixa sälj update ratio + bild
-const options = ["Mangoes", "Apples", "Oranges"];
 function AdminPage() { 
         const [data, setData] = useState([]);
         const [active, setActive] = useState([]);
         const navigate = useNavigate();
         const[name, setName] = useState("");
         const[id, setId] = useState("");
+        const[proId, setProId] = useState("");
+        const[blockId, setBlockId] = useState("");
+        const[delId, setDelId] = useState("");
+        //const[proId, setProId] = useState("");
         const[address, setAddress] = useState("");
         const[zip, setZip] = useState("");
         const[password, setPassword] = useState("");
         const[email, setEmail] = useState("");
         const[block, setBlock] = useState("");
+        const[securityCheck, setSecurityCheck] = useState('0');
         //const[loginStatus, setLoginStatus] = useState("");
         const[prosumer, setProsumer] = useState('0');
         const[ratio, setRatio] = useState("NaN");
@@ -38,18 +42,42 @@ function AdminPage() {
         const[temp, setTemp] = useState("NaN");
         const[netProd, setNetProd] = useState("0")
         const[marketprice, setmarketprice] = useState("0")
-        const[pictureURL, setPictureURL] = useState("");
-        const token = localStorage.getItem('id_token');
-        const [isOpen, setIsOpen] = useState(false);
-        const [selectedOption, setSelectedOption] = useState(null);
+        const[picBase, setpicBase] = useState("");;
+        const[selectedFile, setSelectedFile] = useState();
+        const[isSelected, setIsSelected] = useState(false);
 
-        const toggling = () => setIsOpen(!isOpen);
+	const changeHandler = (event) => {
 
-        const onOptionClicked = value => () => {
-          setSelectedOption(value);
-          setIsOpen(false);
-          console.log(selectedOption);
-        };
+		setSelectedFile(event.target.files[0]);
+
+		setIsSelected(true);
+
+	};
+
+  //TODO skicka från index.js
+	const handleSubmission = () => {
+    var data = new FormData();
+      data.append('file', selectedFile);
+      data.append('userid', localStorage.getItem("adminid"));
+      var config = {
+        method: 'POST',
+        url: 'http://127.0.0.1:5000/uploader?type=admin',
+        data : data
+      };
+    
+    Axios(config)
+    .then(function (response) {
+      console.log(JSON.stringify(response.data));
+      alert("reload to see the picture")
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+    alert("reload to see the picture")
+	};
+
+
+
                 const blockUser = () => {
           Axios.post("http://localhost:3001/admin", {
           }).then((response)=> {
@@ -61,16 +89,20 @@ function AdminPage() {
             }
           }).catch(err => err);
       };
-      const removeUser = () => {
-        Axios.post("http://localhost:3001/admin", {
-        }).then((response)=> {
-          if(response.data.message){
-          }else{
-            localStorage.setItem("admintoken", response.data.token)
-            localStorage.setItem("adminid", 1)
-            navigate('/AdminPage');
-          }
-        }).catch(err => err);
+      const deleteUser = () => {
+        if(securityCheck === 1) {
+          Axios.post("http://localhost:3001/admin", {
+          }).then((response)=> {
+            if(response.data.message){
+            }else{
+              localStorage.setItem("admintoken", response.data.token)
+              localStorage.setItem("adminid", 1)
+              navigate('/AdminPage');
+            }
+          }).catch(err => err);
+        }else{
+          alert("Please fill in the checkbox to confirm removal of user with id:  "+ delId)
+        }
       };
         const changeUser = () => {
           Axios.post("http://localhost:3001/adminchange", {
@@ -80,19 +112,26 @@ function AdminPage() {
                     zip: zip, 
                     password:password,
                     email:email,
-                    prosumer:prosumer,
                     token: localStorage.getItem("admintoken"),
                     adminid: localStorage.getItem("adminid")
                   }).then((response)=> {
-                    if(response.data.succ){
-                      alert("Successfull Registration")
-                      navigate('/sign-in');
-                    }
-                    if(response.data.message){
-                      
+                    if(response.data){
+                      alert(response.data)
                     }
                   }).catch(error => console.log(error));
               };
+        const changeProd = () => {
+          Axios.post("http://localhost:3001/adminprodchange", {
+            id: proId,
+            prosumer: prosumer,
+            token: localStorage.getItem("admintoken"),
+            adminid: localStorage.getItem("adminid")
+        }).then((response)=> {
+          if(response.data.message){
+            alert(response.data.message)
+          }
+        }).catch(error => console.log(error));
+    };
         const changePowerplantStatus = () => {
           Axios.post("http://localhost:3001/admin", {
           }).then((response)=> {
@@ -177,14 +216,23 @@ function AdminPage() {
         setmarketprice(response.data.data["Market Info"][0].market_price)
         }).catch(err => err);
   };
-  //  const logout = () =>{
-  //      localStorage.setItem("admintoken", null),
-    //    localStorage.setItem("adminid", null),
-      //  navigate("/admin")
- //   }
+  const getPicture = () =>{
+    Axios.post("http://localhost:3001/picture", {
+      id: localStorage.getItem("adminid"),
+      token: localStorage.getItem("admintoken"),
+      type: "admin"
+    }).then((response)=> {
+      if(response.data) {
+        setpicBase(response.data)
+      }else{
+      }
+
+    }).catch(err => err);
+  };
 
       useEffect(() => {
         //do at refresh
+        getPicture()
         getAdminData()
         getUsers()
         const interval = setInterval(() => {
@@ -196,9 +244,10 @@ function AdminPage() {
         return (
           
         <div className="AdminPage">
+          <img src={`data:image/jpeg;base64,${picBase}`} />
           <h1>Currently active ids: {active}</h1>
            <h1> Kolfall </h1>
-        <h2>--------------------Change User-------------------------</h2>
+        <h2>--------------------Change User--------------------</h2>
         <label> Id</label>
         <input type="text" name="id" onChange={(event) => {
           setId(event.target.value);
@@ -223,22 +272,64 @@ function AdminPage() {
         <input type="password" name="password" onChange={(event) => {
           setPassword(event.target.value);
         } } /> 
-        <label>New Prosumer</label>
+        
+         <button onClick={changeUser}> Change</button>
+        <h2>Change prosumer status</h2>
+        <label> Id:</label>
+        <input type="text" name="proid" onChange={(event) => {
+          setProId(event.target.value);
+        } } />
         <input type="checkbox" name="checkbox" onChange={(event) =>{
           setProsumer(event.target.checked ? '1' : '0')
         }
         } />
-        <button onClick={changeUser}> Change</button>
-        <h2>--------------------Block User-------------------------</h2>
-        <label> Id</label>
+        <button onClick={changeProd}> Change </button>
+        <h2>-------------------------Block Prosumer-------------------------</h2>
+        <label> Id:</label>
         <input type="text" name="id" onChange={(event) => {
-          setId(event.target.value);
+          setBlockId(event.target.value);
         } } />
-        <label> Block Time (s)</label>
+        <label> Block Time (s):</label>
         <input type="text" name="block" onChange={(event) => {
           setBlock(event.target.value);
         } } />
         <button onClick={blockUser}> Block</button>
+        <h2>-------------------------Delete User-------------------------</h2>
+        <label> Id:</label>
+        <input type="text" name="id" onChange={(event) => {
+          setDelId(event.target.value);
+        } } />
+        <label> Are you sure? </label>
+          <input type="checkbox" name="checkbox" onChange={(event) =>{
+          setSecurityCheck(event.target.checked ? '1' : '0')
+        }
+        } />
+        <button onClick={deleteUser}> Delete</button>
+        <input type="file" name="file" onChange={changeHandler} />
+
+{isSelected ? (
+
+  <div>
+
+    <p>Filename: {selectedFile.name}</p>
+
+    <p>Filetype: {selectedFile.type}</p>
+
+    <p>Size in bytes: {selectedFile.size}</p>
+
+  </div>
+
+) : (
+
+  <p>Select a file to show details</p>
+
+)}
+
+<div>
+
+  <button onClick={handleSubmission}>Submit</button>
+
+</div>
         <JsonToTable json={data} />
       </div>
         );

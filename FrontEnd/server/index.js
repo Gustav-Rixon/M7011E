@@ -192,6 +192,7 @@ app.post("/picture", (req, res)=>{
     const id = req.body.id;
       Axios.get("http://127.0.0.1:5000/user/get_user_pic?id="+ id+"&token="+ token + "&type="+ type)
       .then(function (response) {
+          console.log(response.data)
           res.send(response.data)
       })
       .catch(function (error) {
@@ -212,6 +213,14 @@ app.get("/admindata", verifyJWT, (req, res)=>{
     const token = req.header("x-access-token");
     const id = req.header("user-id");
     Axios.get("http://127.0.0.1:5000/admin/view?token="+token+"&id="+ id).then(resp => {
+        res.json({data: resp.data})
+    }).catch(err => err);
+});
+//behöver token check
+app.post("/adminblock", (req, res)=>{
+    const token = req.header("x-access-token");
+    const id = req.header("user-id");
+    Axios.post("http://127.0.0.1:5000/admin/tools/block_user_from_trade/house_hold_id="+id+"&number_of_cycle="+ block).then(resp => {
         res.json({data: resp.data})
     }).catch(err => err);
 });
