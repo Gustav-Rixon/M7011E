@@ -3,6 +3,7 @@ from mysql.connector import Error
 from werkzeug.wrappers.response import Response
 from Backend.resources.Functions import calc_station
 from urllib.parse import unquote
+import json
 
 
 class Consumer:
@@ -18,6 +19,7 @@ class Consumer:
         self._closest_station_distance = closest_station_distance
         self._power_status = 0
         self._prosumer = 0
+        self._blackout_duration = 0
 
 
 class Prosumer(Consumer):
@@ -81,6 +83,19 @@ class Buffert:
             pass
 
 
+def database_cred():
+    f = open('conf/configuration.json')
+    data = json.load(f)
+    host = data.get("DATABASE_CONF").get("host")
+    database = data.get("DATABASE_CONF").get("database")
+    user = data.get("DATABASE_CONF").get("user")
+    password = data.get("DATABASE_CONF").get("password")
+    return mysql.connector.connect(host=host,
+                                   database=database,
+                                   user=user,
+                                   password=password)
+
+
 def create_house_holds_objects():
     """[summary]
         Creates house holds objects from the database
@@ -93,12 +108,8 @@ def create_house_holds_objects():
     list_of_prosumer = []
 
     try:
-        connection = mysql.connector.connect(host='localhost',
-                                             database='m7011e',
-                                             user='root',
-                                             password='')
+        connection = database_cred()
         sql_select_Query = "select * from house_hold"
-        # MySQLCursorDict creates a cursor that returns rows as dictionaries
         cursor = connection.cursor(dictionary=True)
         cursor.execute(sql_select_Query)
         records = cursor.fetchall()
@@ -139,13 +150,8 @@ def create_power_plants_objects():
     list = []
 
     try:
-        connection = mysql.connector.connect(host='localhost',
-                                             database='m7011e',
-                                             user='root',
-                                             password='')
-
+        connection = database_cred()
         sql_select_Query = "select * from power_plant"
-        # MySQLCursorDict creates a cursor that returns rows as dictionaries
         cursor = connection.cursor(dictionary=True)
         cursor.execute(sql_select_Query)
         records = cursor.fetchall()
@@ -200,12 +206,8 @@ def check(consumer_households_in_siumulation, prosumer_households_in_siumulation
     check = len(consumer_households_in_siumulation +
                 prosumer_households_in_siumulation)
     try:
-        connection = mysql.connector.connect(host='localhost',
-                                             database='m7011e',
-                                             user='root',
-                                             password='')
+        connection = database_cred()
         sql_select_Query = "select * from house_hold"
-        # MySQLCursorDict creates a cursor that returns rows as dictionaries
         cursor = connection.cursor(dictionary=True)
         cursor.execute(sql_select_Query)
         records = cursor.fetchall()
@@ -251,12 +253,8 @@ def check_prosumer_change(consumer_households_in_siumulation, prosumer_household
         [list]: [A new list of current consumers in the simulation and current prosumers in the simulation]
     """
     try:
-        connection = mysql.connector.connect(host='localhost',
-                                             database='m7011e',
-                                             user='root',
-                                             password='')
+        connection = database_cred()
         sql_select_Query = "select * from user"
-        # MySQLCursorDict creates a cursor that returns rows as dictionaries
         cursor = connection.cursor(dictionary=True)
         cursor.execute(sql_select_Query)
         records = cursor.fetchall()
@@ -319,12 +317,8 @@ def add_new_user(consumer_households_in_siumulation, prosumer_households_in_sium
     """
     list3 = consumer_households_in_siumulation + prosumer_households_in_siumulation
     try:
-        connection = mysql.connector.connect(host='localhost',
-                                             database='m7011e',
-                                             user='root',
-                                             password='')
+        connection = database_cred()
         sql_select_Query = "select * from house_hold"
-        # MySQLCursorDict creates a cursor that returns rows as dictionaries
         cursor = connection.cursor(dictionary=True)
         cursor.execute(sql_select_Query)
         records = cursor.fetchall()
@@ -363,12 +357,7 @@ def remove_user_from_database(request, **data):
         [Response]: [-1 if failed, 1 if success]
     """
     try:
-        connection = mysql.connector.connect(host='localhost',
-                                             database='m7011e',
-                                             user='root',
-                                             password='')
-
-        # MySQLCursorDict creates a cursor that returns rows as dictionaries
+        connection = database_cred()
         cursor = connection.cursor(dictionary=True)
         cursor.execute('DELETE FROM user WHERE user_id=%s',
                        (data.get('user_id'),))
@@ -400,12 +389,7 @@ def remove_user_from_simulation(consumer_households_in_siumulation, prosumer_hou
     prosumer_households_in_siumulation_temp = []  # list of prosumers form database
 
     try:
-        connection = mysql.connector.connect(host='localhost',
-                                             database='m7011e',
-                                             user='root',
-                                             password='')
-
-        # MySQLCursorDict creates a cursor that returns rows as dictionaries
+        connection = database_cred()
         cursor = connection.cursor()
         cursor.execute('SELECT user_id, prosumer FROM user')
         records = cursor.fetchall()
@@ -470,19 +454,14 @@ def register(request, **data):
         [Response]: [-1 if failed, 1 if succes]
     """
     try:
-        connection = mysql.connector.connect(host='localhost',
-                                             database='m7011e',
-                                             user='root',
-                                             password='')
-
-        # MySQLCursorDict creates a cursor that returns rows as dictionaries
+        connection = database_cred()
         cursor = connection.cursor(dictionary=True)
 
-        sql = """INSERT INTO user (user_name, password, email, address, zipcode, prosumer) VALUES (%s, %s, %s, %s, %s, %s)"""
-        val = (data.get("username"), unquote(data.get("password")), data.get(
+        sql = "INSERT INTO user (user_name, password, email, address, zipcode, prosumer) VALUES (%s, %s, %s, %s, %s, %s)"
+        val = (data.get("username"), unquote(data.get("password")).replace('/\//g', "slash"), data.get(
             "email"), data.get("address"), data.get("zipcode"), data.get("prosumer"))
+
         cursor.execute(sql, val)
-        # records = cursor.commit()
         connection.commit()
         add_house_hold(data.get("username"))
 
@@ -506,14 +485,8 @@ def login(request, **data):
         [Response]: [-1 if failed, 1 if succes]
     """
     try:
-        connection = mysql.connector.connect(host='localhost',
-                                             database='m7011e',
-                                             user='root',
-                                             password='')
-
-        # MySQLCursorDict creates a cursor that returns rows as dictionaries
+        connection = database_cred()
         cursor = connection.cursor()
-        # MySQLCursorDict creates a cursor that returns rows as dictionaries
         cursor = connection.cursor(dictionary=True)
         cursor.execute(
             'SELECT password, user_id FROM user WHERE user_name=%s', (data.get('username'),))
@@ -539,14 +512,8 @@ def admin_login(request, **data):
         [Response]: [-1 if failed, 1 if succes]
     """
     try:
-        connection = mysql.connector.connect(host='localhost',
-                                             database='m7011e',
-                                             user='root',
-                                             password='')
-
-        # MySQLCursorDict creates a cursor that returns rows as dictionaries
+        connection = database_cred()
         cursor = connection.cursor()
-        # MySQLCursorDict creates a cursor that returns rows as dictionaries
         cursor = connection.cursor(dictionary=True)
         cursor.execute(
             'SELECT password FROM admin WHERE user_name =%s', (data.get('username'),))
@@ -563,14 +530,8 @@ def admin_login(request, **data):
 
 def add_house_hold(username):
     try:
-        connection = mysql.connector.connect(host='localhost',
-                                             database='m7011e',
-                                             user='root',
-                                             password='')
-
-        # MySQLCursorDict creates a cursor that returns rows as dictionaries
+        connection = database_cred()
         cursor = connection.cursor()
-        # MySQLCursorDict creates a cursor that returns rows as dictionaries
         cursor = connection.cursor(dictionary=True)
         cursor.execute(
             'SELECT user_id, prosumer, address, zipcode FROM user WHERE user_name=%s', (username,))
@@ -598,14 +559,8 @@ def add_house_hold(username):
 
 def upload_user_pic(pic_name, user_id):
     try:
-        connection = mysql.connector.connect(host='localhost',
-                                             database='m7011e',
-                                             user='root',
-                                             password='')
-
-        # MySQLCursorDict creates a cursor that returns rows as dictionaries
+        connection = database_cred()
         cursor = connection.cursor()
-        # MySQLCursorDict creates a cursor that returns rows as dictionaries
         cursor = connection.cursor(dictionary=True)
         cursor.execute(
             'UPDATE user SET user_pic=%s WHERE user_id=%s', (pic_name, user_id,))
@@ -632,14 +587,8 @@ def change_user_info(user_id, info, row):
         [Response]: [Returns error if failed. Else response successfully]
     """
     try:
-        connection = mysql.connector.connect(host='localhost',
-                                             database='m7011e',
-                                             user='root',
-                                             password='')
-
-        # MySQLCursorDict creates a cursor that returns rows as dictionaries
+        connection = database_cred()
         cursor = connection.cursor()
-        # MySQLCursorDict creates a cursor that returns rows as dictionaries
         cursor = connection.cursor(dictionary=True)
         if row == 'user_name':
             cursor.execute(
@@ -686,14 +635,8 @@ def get_user_pic(user_id, table):
         [string]: [Filename]
     """
     try:
-        connection = mysql.connector.connect(host='localhost',
-                                             database='m7011e',
-                                             user='root',
-                                             password='')
-
-        # MySQLCursorDict creates a cursor that returns rows as dictionaries
+        connection = database_cred()
         cursor = connection.cursor()
-        # MySQLCursorDict creates a cursor that returns rows as dictionaries
         cursor = connection.cursor(dictionary=True)
         if table == "admin":
             cursor.execute(
@@ -728,3 +671,6 @@ def search_global_list(id, list):
         if object._id == id:
             return True
     return False
+
+
+database_cred()
