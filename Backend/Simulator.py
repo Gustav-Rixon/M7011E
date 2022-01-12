@@ -281,11 +281,12 @@ class SimulatorEndPoints:
     def on_change_power_plant_output(request):
         if request.method == ('POST'):
             if check_JWT(request.args.get("token"), request.args.get('id'), adminKey):
-                error = Events.change_production(request.args.get(
-                    'id'), request.args.get('power'))
-                if error:
-                    return Response(str(error))
-                return Response(f"burning {request.args.get('id')}, {request.args.get('power')} hamsters insted")
+
+                for power_plant in global_power_plant_list:
+                    if power_plant._id == int(request.args.get('target')):
+
+                        if int(request.args.get('power')) == power_plant._production:
+
             return Response("Unauthorised")
         return Response("Wrong request method")
 
@@ -451,7 +452,7 @@ class SimulatorEndPoints:
         """
         if request.method == 'POST':
 
-            if request.args.get("admin"):
+            if request.args.get("type"):
                 UPLOAD_FOLDER = 'Database/ProfilePictures/admin'
             else:
                 UPLOAD_FOLDER = 'Database/ProfilePictures/users'
@@ -469,7 +470,7 @@ class SimulatorEndPoints:
                           request.form.get('userid')+filename))
                 # TODO INSERT FILE PATHE INTO USER TABLE
                 upload_user_pic(request.form.get('userid') +
-                                filename, request.form.get('userid'))
+                                filename, request.form.get('userid'), request.args.get("type"))
                 return Response("Picture successfully uploaded")
         return Response("Wrong method")
 
@@ -478,7 +479,7 @@ class SimulatorEndPoints:
 
         if request.args.get('type') == "admin":
             UPLOAD_FOLDER = 'Database/ProfilePictures/admin/'
-        if request.args.get('') == "user":
+        if request.args.get('type') == "user":
             UPLOAD_FOLDER = 'Database/ProfilePictures/users/'
 
         with open(UPLOAD_FOLDER+file_name[0].get("user_pic"), 'rb') as image_file:
