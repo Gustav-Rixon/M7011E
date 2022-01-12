@@ -196,8 +196,11 @@ class Simulator:
             total_production += power_plant._production
         return total_production
 
-    def run(self):
+    def run(self, debugmode):
         """[summary]
+
+        Args:
+            debugmode ([Boolean]): [If true prints debug messages]
 
         """
         Simulator.get_JWC_keys()
@@ -216,7 +219,6 @@ class Simulator:
 
         while True:
 
-            print("RUNNING")
             self._consumer_households_in_siumulation, self._prosumer_households_in_siumulation = check(self._consumer_households_in_siumulation,
                                                                                                        self._prosumer_households_in_siumulation)
 
@@ -238,29 +240,31 @@ class Simulator:
             market_status = self._simulator_market.update_market(
                 simulator_production-simulator_consumption)
 
-            for object in self._consumer_households_in_siumulation:
+            if debugmode == True:
+
+                print("RUNNING")
+
+                for object in self._consumer_households_in_siumulation:
+                    print(
+                        f"CONSUMER id:{object._id} status:{object._power_status}")
+
+                for object in self._prosumer_households_in_siumulation:
+                    object.power_check()
+                    print(
+                        f"PROSUMER id:{object._id} status:{object._power_status} buffert:{object._buffert.content} consumption:{object._consumption} production:{object._production}")
+
+                print(f"markut status {market_status}")
+                global_market.calculate_recommended_electricity_price(
+                    simulator_consumption, len(global_household_list))
+                print("############current_consumption##############")
+                print(simulator_consumption)
+                print("#############current_production total#############")
+                print(simulator_production)
+                print("#############current_net#############")
+                print(simulator_production-simulator_consumption)
                 print(
-                    f"CONSUMER id:{object._id} status:{object._power_status}")
-
-            for object in self._prosumer_households_in_siumulation:
-                object.power_check()
-                print(
-                    f"PROSUMER id:{object._id} status:{object._power_status} buffert:{object._buffert.content} consumption:{object._consumption} production:{object._production}")
-
-            print(f"markut status {market_status}")
-
-            global_market.calculate_recommended_electricity_price(
-                simulator_consumption, len(global_household_list))
-
-            print("############current_consumption##############")
-            print(simulator_consumption)
-            print("#############current_production total#############")
-            print(simulator_production)
-            print("#############current_net#############")
-            print(simulator_production-simulator_consumption)
-            print(
-                f"????????????????? {global_market.market_buffert.content} ?????????????????")
-            print(f"POWER{global_power_plant_list[0]._production}")
+                    f"????????????????? {global_market.market_buffert.content} ?????????????????")
+                print(f"POWER{global_power_plant_list[0]._production}")
             sleep(1)
 
         # On Windows the subprocesses will import (i.e. execute) the main module at start. You need to insert an if __name__ == '__main__': guard in the main module to avoid creating subprocesses
@@ -445,7 +449,12 @@ class SimulatorEndPoints:
             [redirect]: [redirects user after successfully a upload, returns error if not successfully]
         """
         if request.method == 'POST':
-            UPLOAD_FOLDER = 'Database/ProfilePictures/users'
+
+            if request.args.get("admin"):
+                UPLOAD_FOLDER = 'Database/ProfilePictures/admin'
+            else:
+                UPLOAD_FOLDER = 'Database/ProfilePictures/users'
+
             if 'file' not in request.files:
                 return Response('No file part')
             file = request.files['file']
@@ -465,10 +474,27 @@ class SimulatorEndPoints:
 
     def send_file(request):
         file_name = SimulatorEndPoints.get_pic(request)
-        UPLOAD_FOLDER = 'Database/ProfilePictures/users/'
+
+        if request.args.get('type') == "admin":
+            UPLOAD_FOLDER = 'Database/ProfilePictures/admin/'
+        if request.args.get('') == "user":
+            UPLOAD_FOLDER = 'Database/ProfilePictures/users/'
+
         with open(UPLOAD_FOLDER+file_name[0].get("user_pic"), 'rb') as image_file:
             encoded_string = base64.b64encode(image_file.read())
         return Response(encoded_string)
+
+    def get_pic(request):
+        if request.method == 'GET':
+            if request.args.get('type') == "admin":
+                if check_JWT(request.args.get('token'), int(request.args.get('id')), adminKey):
+                    file = get_user_pic(request.args.get('id'), "admin")
+                    return file
+            if check_JWT(request.args.get('token'), int(request.args.get('id')), key):
+                file = get_user_pic(request.args.get('id'), "user")
+                return file
+            return Response("Unauthorised")
+        return Response("Wrong request method")
 
     def admin_view(request):
         """[summary]
@@ -494,18 +520,6 @@ class SimulatorEndPoints:
 
                 contents = json.dumps(data, sort_keys=False)
                 return Response(contents, content_type="application/json")
-            return Response("Unauthorised")
-        return Response("Wrong request method")
-
-    def get_pic(request):
-        if request.method == 'GET':
-            if request.args.get('type') == "admin":
-                if check_JWT(request.args.get('token'), int(request.args.get('id')), adminKey):
-                    file = get_user_pic(request.args.get('id'), "admin")
-                    return file
-            if check_JWT(request.args.get('token'), int(request.args.get('id')), key):
-                file = get_user_pic(request.args.get('id'), "user")
-                return file
             return Response("Unauthorised")
         return Response("Wrong request method")
 
@@ -538,6 +552,8 @@ class SimulatorEndPoints:
                     return Response("Address changed")
 
                 if request.args.get('prosumer'):
+                    if request.args.get('prosumer') < 0 or request.args.get('prosumer') < 1:
+                        return Response("Value not allowed")
                     change_user_info(request.args.get(
                         'target_id'), request.args.get('prosumer'), request.args.get('target_row'))
                     return Response(f"prosumer for id {request.args.get('target_id')} changed")
