@@ -1,15 +1,9 @@
 import unittest
-import GpsNominatim
-import Functions
+import Backend.resources.GpsNominatim as GpsNominatim
+import Backend.resources.Functions as Functions
 
 
 class TestGpsNominatim(unittest.TestCase):
-    """[summary]
-
-    Args:
-        unittest ([type]): [description]
-    """
-
     def test_get_close(self):
         closest = GpsNominatim.get_close(15, 15)
         self.assertEqual(str, type(closest[0]))
@@ -32,12 +26,6 @@ class TestGpsNominatim(unittest.TestCase):
 
 
 class TestFunctions(unittest.TestCase):
-    """[summary]
-
-    Args:
-        unittest ([type]): [description]
-    """
-
     def test_calc_wind(self):
         data = Functions.calc_wind(97200, 3000)
         self.assertEqual(float, type(data))
