@@ -37,7 +37,7 @@ function LoginPage() {
       data.append('userid', localStorage.getItem("id"));
       var config = {
         method: 'POST',
-        url: 'http://127.0.0.1:5000/uploader?type=user',
+        url: 'http://127.0.0.1:5000/uploader?type=user&id='+localStorage.getItem("id")+'&token='+localStorage.getItem("token"),
         data : data
       };
     
@@ -143,7 +143,7 @@ function LoginPage() {
         <div className="LoginPage">
           <button onClick={logout}> logout</button>
           <h1>Welcome to Kolfall</h1>
-          <img src={`data:image/jpeg;base64,${picBase}`} />
+          <img src={`data:image/jpeg;base64,${picBase}`} height={500} width={700} />
           <h1>----------------------Your personal data---------------------</h1>
           <h1>Wind:{wind}  m/s</h1>
           <h1>Temperature:{temp} °C</h1>

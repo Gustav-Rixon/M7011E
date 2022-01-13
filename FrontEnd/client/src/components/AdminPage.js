@@ -54,7 +54,7 @@ function AdminPage() {
       data.append('userid', localStorage.getItem("adminid"));
       var config = {
         method: 'POST',
-        url: 'http://127.0.0.1:5000/uploader?type=admin',
+        url: 'http://127.0.0.1:5000/uploader?type=admin&id='+localStorage.getItem("adminid")+'&token='+localStorage.getItem("admintoken"),
         data : data
       };
     
@@ -122,14 +122,23 @@ function AdminPage() {
         }).catch(error => console.log(error));
     };
         const submitPowerPlantProduction = () => {
-          Axios.post("http://localhost:3001/admin", {
+          Axios.post("http://localhost:3001/factoryproduction", {
+            power: production,
+            target: targetFactory,
+            token: localStorage.getItem("admintoken"),
+            adminid: localStorage.getItem("adminid")
           }).then((response)=> {
-            if(response.data.message){
-            }else{
-              localStorage.setItem("admintoken", response.data.token)
-              localStorage.setItem("adminid", 1)
-              navigate('/AdminPage');
-            }
+            console.log(response.data)
+          }).catch(err => err);
+        };
+        const submitSendToMarket = () => {
+          Axios.post("http://localhost:3001/factorytomarket", {
+            amount: bufferToMarket,
+            target: targetFactory,
+            token: localStorage.getItem("admintoken"),
+            adminid: localStorage.getItem("adminid")
+          }).then((response)=> {
+            console.log(response.data)
           }).catch(err => err);
         };
         const submitElectricityPrice = () => {
@@ -221,7 +230,7 @@ function AdminPage() {
 
       useEffect(() => {
         //do at refresh
-        //getPicture()
+        getPicture()
         getAdminData()
         getUsers()
         getMarketData()
@@ -238,8 +247,8 @@ function AdminPage() {
         return (
           
         <div className="AdminPage">
-          <img src={`data:image/jpeg;base64,${picBase}`} />
           <h1> Kolfall </h1>
+          <img src={`data:image/jpeg;base64,${picBase}`}height={500} width={700} />
           <h1>Currently active ids: {active}</h1>
         <h2>--------------------Change User--------------------</h2>
         <label> Id</label>
@@ -348,7 +357,7 @@ function AdminPage() {
         <input type="text" name="targetFactory" onChange={(event) => {
           setProduction(event.target.value);
         } } />
-    <button onClick={set}> Submit Ratio</button>
+    <button onClick={submitPowerPlantProduction}> Submit Ratio</button>
 
 
 <h2>-------------------------Send Power Plant Buffer Content to Market-------------------------</h2>
@@ -360,6 +369,7 @@ function AdminPage() {
         <input type="text" name="bufferAmount" onChange={(event) => {
           setBufferToMarket(event.target.value);
         } } />
+        <button onClick={submitSendToMarket}> Submit Ratio</button>
 <JsonToTable json={powerPlantData} />
       </div>
         );

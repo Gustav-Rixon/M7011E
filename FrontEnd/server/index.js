@@ -191,7 +191,7 @@ app.post("/picture", (req, res)=>{
     const token = req.body.token;
     const type = req.body.type;
     const id = req.body.id;
-      Axios.get("http://127.0.0.1:5000/user/get_user_pic?id="+ id+"&token="+ token + "&type="+ type)
+      Axios.get("http://127.0.0.1:5000/get_user_pic?id="+ id+"&token="+ token + "&type="+ type)
       .then(function (response) {
           res.send(response.data)
       })
@@ -288,13 +288,24 @@ app.get("/factorydata", (req, res)=>{
             res.send(resp.data)
     }).catch(err => err);
 });
-app.post("/factorypower", (req, res)=>{
+app.post("/factoryproduction", (req, res)=>{
     const token = req.body.token;
-    const power = req.res.power
+    const power = req.body.power;
+    const target = req.body.target;
     const adminid = req.body.adminid;
-    Axios.post("http://127.0.0.1:5000/admin/tools/remove_user?target="+id+"&id="+adminid+"&token="+token).then(resp => {
+    Axios.post("http://127.0.0.1:5000/admin/tools/change_power?target="+target+"&id="+adminid+"&token="+token+"&power="+power).then(resp => {
 
-            res.send("Please check the table below that the user has been removed")
+            res.send(resp.data)
+    }).catch(err => err);
+});
+app.post("/factorytomarket", (req, res)=>{
+    const token = req.body.token;
+    const amount = req.body.amount;
+    const target = req.body.target;
+    const adminid = req.body.adminid;
+    Axios.post("http://127.0.0.1:5000/admin/tools/send_to_market?target="+target+"&id="+adminid+"&token="+token+"&amount="+amount).then(resp => {
+
+            res.send(resp.data)
     }).catch(err => err);
 });
 //skräp?
