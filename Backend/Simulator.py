@@ -599,7 +599,8 @@ class SimulatorEndPoints:
     def remove_user(request):
         if request.method == 'POST':
             if check_JWT(request.args.get('token'), int(request.args.get('id')), adminKey):
-                remove_user_from_database(request.args.get('target'))
+                res = remove_user_from_database(request.args.get('target'))
+                return Response(f"{res}")
             return Response("Unauthorised or bad request")
         return Response("Wrong request method")
 

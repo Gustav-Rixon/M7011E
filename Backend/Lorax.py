@@ -369,7 +369,7 @@ def remove_user_from_database(request):
         if connection.is_connected():
             connection.close()
             cursor.close()
-            return Response(f"{cursor.rowcount}")
+            return cursor
 
 
 def remove_user_from_simulation(consumer_households_in_siumulation, prosumer_households_in_siumulation):
@@ -679,6 +679,3 @@ def search_global_list(id, list):
         if object._id == id:
             return True
     return False
-
-
-database_cred()
