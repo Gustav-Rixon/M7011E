@@ -180,8 +180,8 @@ class Simulator:
             if prosumer._production > prosumer._consumption:  # Only send to buffert when condison is meet
                 prosumer._buffert.content += (prosumer._production -
                                               prosumer._consumption)*(1-prosumer._ratio_to_market)
-                global_market.market_buffert.content = (prosumer._production -
-                                                        prosumer._consumption)*prosumer._ratio_to_market
+                # global_market.market_buffert.content = (prosumer._production -
+                #                                        prosumer._consumption)*prosumer._ratio_to_market
 
             if prosumer._consumption > prosumer._production:
                 prosumer._buffert.content -= abs(prosumer._production -
@@ -254,8 +254,10 @@ class Simulator:
             simulator_production += Simulator.calc_power_plant_production(
                 self._power_plant)
 
-            market_status = self._simulator_market.update_market(
+            global_market.update_market(
                 simulator_production-simulator_consumption)
+
+            global_market.market_buffert.content += 1
 
             if self._debugmode == True:
 
@@ -270,7 +272,6 @@ class Simulator:
                     print(
                         f"PROSUMER id:{object._id} status:{object._power_status} buffert:{object._buffert.content} consumption:{object._consumption} production:{object._production}")
 
-                print(f"markut status {market_status}")
                 global_market.calculate_recommended_electricity_price(
                     simulator_consumption, len(global_household_list))
                 print("############current_consumption##############")
@@ -314,7 +315,31 @@ class SimulatorEndPoints:
                             power_plant._changing_power = True
 
                     return Response("Changing power")
+            return Response("Unauthorised")
+        return Response("Wrong request method")
 
+    def view_power_plant(request):
+        if request.method == ('GET'):
+            if check_JWT(request.args.get("token"), request.args.get('id'), adminKey):
+                data = []
+                for power_plant in global_power_plant_list:
+                    data.append(
+                        {"id": power_plant._id, "production": power_plant._production, "status": power_plant._status,
+                         "Buffert content": power_plant._buffert.content, "Buffert size": power_plant._buffert.capacity})
+                contents = json.dumps(data, sort_keys=False)
+                return Response(contents, content_type="application/json")
+            return Response("Unauthorised")
+        return Response("Wrong request method")
+
+    def change_power_plant_ratio(request):
+        if request.method == ('GET'):
+            if check_JWT(request.args.get("token"), request.args.get('id'), adminKey):
+                for power_plant in global_power_plant_list:
+                    if int(request.args.get("target")) == power_plant._id:
+                        power_plant._ratio_to_market = int(
+                            request.args.get("ratio"))
+                    return Response("Changing ratio")
+                return Response("Powerplant not found")
             return Response("Unauthorised")
         return Response("Wrong request method")
 
@@ -350,13 +375,13 @@ class SimulatorEndPoints:
             return Response("Unauthorised")
         return Response("Wrong request method")
 
-    @rate_limited(1/10, mode='kill')  # FIX
+    # @rate_limited(1/10, mode='kill')  # FIX
     def change_market_size(request):
         if request.method == ('POST'):
             if check_JWT(request.args.get("token"), request.args.get('id'), adminKey):
                 global global_market
                 Market.change_market_size(
-                    global_market, request.args.get('size'))
+                    global_market, int(request.args.get('size')))
                 return Response(f"Changning market size to { request.args.get('size')}")
             return Response("Unauthorised")
         return Response("Wrong request method")
@@ -426,8 +451,8 @@ class SimulatorEndPoints:
     def get_market_info(request, **data):
         if request.method == ('GET'):
             global global_market
-            data = {"market_size": global_market.market_buffert.capacity,
-                    "market_content": global_market.market_buffert.content, "market_price": global_market.market_price, "recommended": global_market.recommended_market_price}
+            data = {"market_size": str(global_market.market_buffert.capacity)+" kWh",
+                    "market_content": str(global_market.market_buffert.content)+" kwH", "market_price": str(global_market.market_price)+" öre", "recommended": str(global_market.recommended_market_price)+" öre"}
             contents = json.dumps(data, sort_keys=False)
             return Response(contents, content_type="application/json")
         return Response("Wrong request method")
@@ -597,9 +622,20 @@ class SimulatorEndPoints:
         return Response("Wrong request method")
 
     def remove_user(request):
+        """[summary]
+
+        Args:
+            request ([type]): [description]
+
+        Returns:
+            [String]: [Returns 0 if no change was made. Returns 1 if change was made.]
+        """
         if request.method == 'POST':
             if check_JWT(request.args.get('token'), int(request.args.get('id')), adminKey):
-                res = remove_user_from_database(request.args.get('target'))
+                if len(request.args.get('target')) == 0:
+                    return Response("Pls type target id")
+                res = remove_user_from_database(
+                    int(request.args.get('target')))
                 return Response(f"{res}")
             return Response("Unauthorised or bad request")
         return Response("Wrong request method")
@@ -630,6 +666,10 @@ class SimulatorEndPoints:
                  endpoint='admin_login'),
             Rule('/admin/tools/remove_user', endpoint='remove_user'),
             Rule('/admin/tools/view', endpoint='admin_view'),
+            Rule('/admin/tools/view_power_plants',
+                 endpoint='admin_view_power_plants'),
+            Rule('/admin/tools/change_power_ratio',
+                 endpoint='admin_change_power_ratio'),
             Rule(
                 '/buy/house_hold/prosumer/house_hold=<int:id>&amount=<int:amount>&token=<string:token>', endpoint='buy'),
             Rule(
@@ -667,7 +707,9 @@ class SimulatorEndPoints:
                  'admin_view': SimulatorEndPoints.admin_view,
                  'get_user_pic': SimulatorEndPoints.send_file,
                  'change_user_info': SimulatorEndPoints.change_user_credentials,
-                 'change_market_price': SimulatorEndPoints.change_market_price}
+                 'change_market_price': SimulatorEndPoints.change_market_price,
+                 'admin_change_power_ratio': SimulatorEndPoints.change_power_plant_ratio,
+                 'admin_view_power_plants': SimulatorEndPoints.view_power_plant}
 
         request = Request(environ)
         urls = url_map.bind_to_environ(environ)
