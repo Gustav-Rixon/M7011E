@@ -16,6 +16,7 @@ function clean(value){
 function AdminPage() { 
         const [data, setData] = useState([]);
         const [marketData, setMarketData] = useState([]);
+        const [powerPlantData, setpowerPlantData] = useState([]);
         const [active, setActive] = useState([]);
         const navigate = useNavigate();
         const[name, setName] = useState("");
@@ -29,9 +30,8 @@ function AdminPage() {
         const[email, setEmail] = useState("");
         const[block, setBlock] = useState("");
         const[prosumer, setProsumer] = useState('0');
-        const[ratio, setRatio] = useState("NaN");
-        const[tempratio, setTempRatio] = useState("NaN");
-        const[sell, setSell] = useState("0");
+        const[ratio, setRatio] = useState("");
+        const[targetFactory, setTargetFactory] = useState("");
         const[wind, setWind] = useState("NaN");
         const[consumption, setConsumption] = useState("NaN");
         const[production, setProduction] = useState("NaN");
@@ -142,19 +142,16 @@ function AdminPage() {
             price: price,
             token: localStorage.getItem("admintoken"),
             adminid: localStorage.getItem("adminid")
-          }).then((response)=> {
-          console.log(response.data)
-          }).catch(error => console.log(error));
+          })
         };
-        const changeFactoryRatio = () => {
-          Axios.post("http://localhost:3001/admin", {
+        const submitFactoryRatio = () => {
+          Axios.post("http://localhost:3001/factoryratio", {
+            ratio: ratio,
+            target: targetFactory,
+            token: localStorage.getItem("admintoken"),
+            adminid: localStorage.getItem("adminid")
           }).then((response)=> {
-            if(response.data.message){
-            }else{
-              localStorage.setItem("admintoken", response.data.token)
-              localStorage.setItem("adminid", 1)
-              navigate('/AdminPage');
-            }
+            window.location.reload(false);
           }).catch(err => err);
         };
         const getUsers = () => {
@@ -191,6 +188,22 @@ function AdminPage() {
           }
         }).catch(err => err);
     };
+    const getPowerPlantData = () =>{
+      Axios.get("http://localhost:3001/factorydata", {
+        headers:{
+          "x-access-token": localStorage.getItem("admintoken"),
+          "user-id": localStorage.getItem("adminid")
+        }
+      }).then((response)=> {
+        if(response.data.auth === false){
+          setData(response.data.data)
+          localStorage.setItem("admintoken", null)
+          localStorage.setItem("adminid", null)
+          navigate('/admin');
+        }
+        setpowerPlantData(response.data)
+      }).catch(err => err);
+  };
     const getMarketData = () =>{
       Axios.get("http://localhost:3001/marketdata", {
       }).then((response)=> {
@@ -218,9 +231,11 @@ function AdminPage() {
         getAdminData()
         getUsers()
         getMarketData()
+        getPowerPlantData()
         const interval = setInterval(() => {
           getMarketData()
           getUsers()
+          getPowerPlantData()
         }, 10000);
 
         return () => clearInterval(interval); // This represents the unmount function, in which you need to clear your interval to prevent memory leaks.
@@ -317,14 +332,19 @@ function AdminPage() {
         <button onClick={submitElectricityPrice}> Confirm</button>
           <JsonToTable json={marketData} />
         <h2>-------------------------Power Plant-------------------------</h2>
-
+        <label> PowerPlant id</label>
+        <input type="text" name="targetFactory" onChange={(event) => {
+          setTargetFactory(event.target.value);
+        } } />
         <ReactSlider
     className="horizontal-slider"
     thumbClassName="example-thumb"
     trackClassName="example-track"
-    onAfterChange={(value, index) => setTempRatio(value)}
+    onAfterChange={(value, index) => setRatio(value)}
     renderThumb={(props, state) => <div {...props}>{state.valueNow}</div>}
 /> 
+<button onClick={submitFactoryRatio}> Submit Ratio</button>
+<JsonToTable json={powerPlantData} />
       </div>
         );
 }

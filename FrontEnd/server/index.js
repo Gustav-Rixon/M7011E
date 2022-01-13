@@ -163,7 +163,6 @@ app.post("/sell", (req, res)=>{
     const id = req.body.id;
     const sell = req.body.sell;
     Axios.post("http://127.0.0.1:5000/sell/house_hold/prosumer/house_hold_id="+id+"&amount="+sell+"&token="+token).then(resp => {
-        console.log(resp.data)
         res.json({message: resp.data})
     }).catch(err => err);
 });
@@ -194,7 +193,6 @@ app.post("/picture", (req, res)=>{
     const id = req.body.id;
       Axios.get("http://127.0.0.1:5000/user/get_user_pic?id="+ id+"&token="+ token + "&type="+ type)
       .then(function (response) {
-          console.log(response.data)
           res.send(response.data)
       })
       .catch(function (error) {
@@ -220,13 +218,11 @@ app.get("/admindata", verifyJWT, (req, res)=>{
 });
 //behöver token check
 app.post("/adminblock", (req, res)=>{
-    console.log("hej")
     const token = req.body.token;
     const id = req.body.id;
     const block = req.body.block;
     const adminid = req.body.adminid;
     Axios.post("http://127.0.0.1:5000/admin/tools/block_user_from_trade?target="+id+"&cycle="+ block+"&id="+adminid+"&token="+token).then(resp => {
-        console.log(resp.data)
         res.json({data: resp.data})
     }).catch(err => err);
 });
@@ -259,12 +255,10 @@ app.post("/adminchange", (req,res) =>{
     const {id,name,zip,address,password,email,prosumer,token,adminid} =req.body;
     if(name !== "" && !name.includes("/", "=", "?", " ", "*", "<", ">", "|", ":", "/\\\//g")){
         Axios.post("http://127.0.0.1:5000/admin/tools/change_user_info?token="+ token +"&id="+adminid+"&target_id="+id+"&target_row=user_name&user_name="+name).then(resp => {
-            console.log(resp.data)
         }).catch(message += "couldnt change name, ");
     }
     if(address !== "" && zip !== 0){
         Axios.post("http://127.0.0.1:5000/admin/tools/change_user_info?token="+ token +"&id="+adminid+"&target_id="+id+"&target_row=address_zipcode&address="+address+"&zipcode"+ zip).then(resp => {
-            console.log(resp.data)
         }).catch(message += "address/zip couldn't change, ");
     }
     if(password !== ""){
@@ -275,12 +269,10 @@ app.post("/adminchange", (req,res) =>{
             var vhash = hash.replace(/\//g, "slash");
             var shash = encodeURIComponent(vhash)
         Axios.post("http://127.0.0.1:5000/admin/tools/change_user_info?token="+ token +"&id="+adminid+"&target_id="+id+"&target_row=password&password="+shash).then(resp => {
-            console.log(resp.data)
         }).catch(message += "password couldn't change, ");
     })}
     if(email !== ""&& email.includes("@",".")){
         Axios.post("http://127.0.0.1:5000/admin/tools/change_user_info?token="+ token +"&id="+adminid+"&target_id="+id+"&target_row=email&email="+ email).then(resp => {
-            console.log(resp.data)
         }).catch(message += "email couldn't change, ");
     }
     else{
@@ -288,31 +280,12 @@ app.post("/adminchange", (req,res) =>{
     }
     res.send(message)
 
-})
-app.post("/admindelete", (req, res)=>{
-    const token = req.body.token;
-    const id = req.body.id;
-    const adminid = req.body.adminid;
-    Axios.post("http://127.0.0.1:5000/admin/tools/remove_user?target="+id+"&id="+adminid+"&token="+token).then(resp => {
-
-            res.send("Please check the table below that the user has been removed")
-    }).catch(err => err);
-});
-app.post("/admindelete", (req, res)=>{
-    const token = req.body.token;
-    const id = req.body.id;
-    const adminid = req.body.adminid;
-    Axios.post("http://127.0.0.1:5000/admin/tools/remove_user?target="+id+"&id="+adminid+"&token="+token).then(resp => {
-
-            res.send("Please check the table below that the user has been removed")
-    }).catch(err => err);
 });
 app.get("/factorydata", (req, res)=>{
-    const token = req.body.token;
-    const adminid = req.body.adminid;
-    Axios.post("http://127.0.0.1:5000/admin/tools/remove_user?target="+id+"&id="+adminid+"&token="+token).then(resp => {
-
-            res.send("Please check the table below that the user has been removed")
+    const token = req.header("x-access-token");
+    const adminid = req.header("user-id");
+    Axios.get("http://127.0.0.1:5000/admin/tools/view_power_plants?id="+adminid+"&token="+token).then(resp => {
+            res.send(resp.data)
     }).catch(err => err);
 });
 app.post("/factorypower", (req, res)=>{
@@ -329,18 +302,10 @@ app.post("/factoryratio", (req, res)=>{
     const token = req.body.token;
     const ratio = req.body.ratio
     const adminid = req.body.adminid;
-    Axios.post("http://127.0.0.1:5000/admin/tools/remove_user?target="+id+"&id="+adminid+"&token="+token).then(resp => {
+    const target = req.body.target
+    Axios.post("http://127.0.0.1:5000/admin/tools/change_power_ratio?ratio="+ratio+"&id="+adminid+"&token="+token+"&target="+target).then(resp => {
 
-            res.send("Please check the table below that the user has been removed")
-    }).catch(err => err);
-});
-app.post("/factorystatus", (req, res)=>{
-    const token = req.body.token;
-    const ratio = req.body.ratio
-    const adminid = req.body.adminid;
-    Axios.post("http://127.0.0.1:5000/admin/tools/remove_user?target="+id+"&id="+adminid+"&token="+token).then(resp => {
-
-            res.send("Please check the table below that the user has been removed")
+            res.send("yes")
     }).catch(err => err);
 });
 
@@ -349,7 +314,7 @@ app.post("/marketprice", (req, res)=>{
     const price = req.body.price;
     const adminid = req.body.adminid;
     Axios.post("http://127.0.0.1:5000/admin/tools/change_market_price?market_price="+price+"&id="+adminid+"&token="+token).then(resp => {
-        console.log(resp.data)
+        res.send(response.data)
             //res.send("Please check the table below that the user has been removed")
     }).catch(err => err);
 });
