@@ -365,7 +365,7 @@ class SimulatorEndPoints:
                         if amount > power_plant._buffert.content:
                             return Response("Cant sell more then curret content")
 
-                        Market.send_to_market(amount)
+                        Market.send_to_market(global_market, amount)
                         power_plant._buffert.content -= amount
 
                     return Response("Sent power to market")
@@ -488,7 +488,7 @@ class SimulatorEndPoints:
         return Response("Wrong request method")
 
     def change_market_price(request):
-        if request.method == ('GET'):
+        if request.method == ('POST'):
             if check_JWT(request.args.get("token"), request.args.get('id'), adminKey):
                 global_market.market_price = int(
                     request.args.get("market_price"))
@@ -700,7 +700,8 @@ class SimulatorEndPoints:
                  endpoint='admin_view_power_plants'),
             Rule('/admin/tools/change_power_ratio',
                  endpoint='admin_change_power_ratio'),
-            Rule('admin/tools/send_to_market', endpoint='admin_send_to_market'),
+            Rule('/admin/tools/send_to_market',
+                 endpoint='admin_send_to_market'),
             Rule(
                 '/buy/house_hold/prosumer/house_hold=<int:id>&amount=<int:amount>&token=<string:token>', endpoint='buy'),
             Rule(
