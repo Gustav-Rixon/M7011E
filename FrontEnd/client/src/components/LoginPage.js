@@ -114,7 +114,7 @@ function LoginPage() {
     const getMarketData = () =>{
       axios.get("http://localhost:3001/marketdata", {
       }).then((response)=> {
-        setmarketprice(response.data.data["Market Info"][0].market_price)
+        setmarketprice(response.data.data["market_price"])
         }).catch(err => err);
   };
     const logout = () =>{
@@ -151,7 +151,7 @@ function LoginPage() {
           <h1>Production:{production}   kWh</h1>
           <h1>Net Production:{netProd}   kWh</h1>
           <h1>Buffer:{buffer}/{bufferCap}  kWh</h1>
-          <h1>Current market price:{marketprice}kr per kWh</h1>
+          <h1>Current market price:{marketprice}/kWh</h1>
             <h1> ---------------------------Prosumer Actions ---------------------------</h1>
             <label> Sell from your buffer</label>
               <input type="text" name="sell"  onChange={(event) => {
@@ -167,7 +167,7 @@ function LoginPage() {
     onAfterChange={(value, index) => setTempRatio(value)}
     renderThumb={(props, state) => <div {...props}>{state.valueNow}</div>}
 />
-           <h1> ---------------------------Uppload Picture---------------------------</h1>    
+           <h1> ---------------------------Upload Profile Picture---------------------------</h1>    
                 <input type="file" name="file" onChange={changeHandler} />
 
 {isSelected ? (
