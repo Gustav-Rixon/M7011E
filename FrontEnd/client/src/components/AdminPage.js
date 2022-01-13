@@ -32,13 +32,8 @@ function AdminPage() {
         const[prosumer, setProsumer] = useState('0');
         const[ratio, setRatio] = useState("");
         const[targetFactory, setTargetFactory] = useState("");
-        const[wind, setWind] = useState("NaN");
-        const[consumption, setConsumption] = useState("NaN");
-        const[production, setProduction] = useState("NaN");
-        const[buffer, setBuffer] = useState("NaN");
-        const[bufferCap, setBufferCap] = useState("NaN");
-        const[temp, setTemp] = useState("NaN");
-        const[netProd, setNetProd] = useState("0")
+        const[bufferToMarket, setBufferToMarket] = useState("");
+        const[production, setProduction] = useState("");
         const[price, setprice] = useState("")
         const[picBase, setpicBase] = useState("");;
         const[selectedFile, setSelectedFile] = useState();
@@ -126,7 +121,7 @@ function AdminPage() {
           }
         }).catch(error => console.log(error));
     };
-        const changePowerplantProduction = () => {
+        const submitPowerPlantProduction = () => {
           Axios.post("http://localhost:3001/admin", {
           }).then((response)=> {
             if(response.data.message){
@@ -183,8 +178,13 @@ function AdminPage() {
           }
         }).then((response)=> {
           if(response.data.auth !== false){
-            setData(response.data.data)
-              
+            setData([])
+            setData(response.data.data)            
+          }else{
+            localStorage.setItem("admintoken", null)
+            localStorage.setItem("adminid", null)
+            navigate('/admin');
+            alert("Session timed out please log in again")
           }
         }).catch(err => err);
     };
@@ -195,12 +195,6 @@ function AdminPage() {
           "user-id": localStorage.getItem("adminid")
         }
       }).then((response)=> {
-        if(response.data.auth === false){
-          setData(response.data.data)
-          localStorage.setItem("admintoken", null)
-          localStorage.setItem("adminid", null)
-          navigate('/admin');
-        }
         setpowerPlantData(response.data)
       }).catch(err => err);
   };
@@ -233,6 +227,7 @@ function AdminPage() {
         getMarketData()
         getPowerPlantData()
         const interval = setInterval(() => {
+          getAdminData()
           getMarketData()
           getUsers()
           getPowerPlantData()
@@ -331,7 +326,7 @@ function AdminPage() {
         } } />
         <button onClick={submitElectricityPrice}> Confirm</button>
           <JsonToTable json={marketData} />
-        <h2>-------------------------Power Plant-------------------------</h2>
+        <h2>-------------------------Power Plant Ratio-------------------------</h2>
         <label> PowerPlant id</label>
         <input type="text" name="targetFactory" onChange={(event) => {
           setTargetFactory(event.target.value);
@@ -344,6 +339,27 @@ function AdminPage() {
     renderThumb={(props, state) => <div {...props}>{state.valueNow}</div>}
 /> 
 <button onClick={submitFactoryRatio}> Submit Ratio</button>
+<h2>-------------------------Change Power Plant Production-------------------------</h2>
+          <label> Power Plant id</label>
+        <input type="text" name="targetFactory" onChange={(event) => {
+          setTargetFactory(event.target.value);
+        } } />
+                  <label> Production Amount</label>
+        <input type="text" name="targetFactory" onChange={(event) => {
+          setProduction(event.target.value);
+        } } />
+    <button onClick={set}> Submit Ratio</button>
+
+
+<h2>-------------------------Send Power Plant Buffer Content to Market-------------------------</h2>
+<label> Power Plant id</label>
+        <input type="text" name="targetFactory" onChange={(event) => {
+          setTargetFactory(event.target.value);
+        } } />
+                          <label> Amount To Send</label>
+        <input type="text" name="bufferAmount" onChange={(event) => {
+          setBufferToMarket(event.target.value);
+        } } />
 <JsonToTable json={powerPlantData} />
       </div>
         );
