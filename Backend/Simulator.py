@@ -210,6 +210,19 @@ class Simulator:
         total_production = 0
         for power_plant in list_of_power_plants:
 
+            if power_plant._production == 0:
+                power_plant._status = 0
+                continue
+
+            if power_plant._startup_time > 0:
+                power_plant._status = 1
+                power_plant._production = 0
+                power_plant._startup_time -= 1
+                continue
+
+            else:
+                power_plant._status = 2
+
             power_plant._buffert.content += power_plant._production * \
                 (1-power_plant._ratio_to_market)
 
@@ -217,6 +230,7 @@ class Simulator:
 
             total_production += power_plant._production * \
                 (power_plant._ratio_to_market)
+
         return total_production
 
     def run(self):
@@ -311,10 +325,15 @@ class SimulatorEndPoints:
                             return Response("Changeing to nothing")
 
                         else:
+
+                            if power_plant._production == 0:
+                                star_up_time = random.randint(1, 10)
+                                power_plant._startup_time = star_up_time
+
                             change = int(request.args.get('power')
                                          ) - power_plant._production
 
-                            number_of_cycels = random.randint(1, 10)
+                            number_of_cycels = random.randint(8, 10)
                             power_plant._changing_power_number_of_cyckels = number_of_cycels
                             power_plant._change_left = change
                             power_plant._changing_power = True

@@ -66,6 +66,7 @@ class PowerPlant:
         self._changing_power_number_of_cyckels = 0
         self._change_left = 0
         self._ratio_to_market = 0.0  # in %
+        self._startup_time = 0
 
     def check_buffert(self):
         Buffert.buffert_checker(self._buffert)
