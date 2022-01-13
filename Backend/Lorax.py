@@ -360,7 +360,7 @@ def remove_user_from_database(request):
         connection = database_cred()
         cursor = connection.cursor(dictionary=True)
         cursor.execute('DELETE FROM user WHERE user_id=%s',
-                       (request.args.get('target'),))
+                       (int(request.args.get('target')),))
         connection.commit()
 
     except Error as e:
