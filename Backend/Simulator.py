@@ -554,11 +554,13 @@ class SimulatorEndPoints:
             [redirect]: [redirects user after successfully a upload, returns error if not successfully]
         """
         if request.method == 'POST':
+            if request.args.get("type") == "admin":
+                if check_JWT(request.args.get("token"), request.args.get('id'), adminKey):
+                    UPLOAD_FOLDER = 'Database/ProfilePictures/admin'
 
-            if request.args.get("type"):
-                UPLOAD_FOLDER = 'Database/ProfilePictures/admin'
-            else:
-                UPLOAD_FOLDER = 'Database/ProfilePictures/users'
+            if request.args.get("type") == "user":
+                if check_JWT(request.args.get("token"), request.args.get('id'), key):
+                    UPLOAD_FOLDER = 'Database/ProfilePictures/users'
 
             if 'file' not in request.files:
                 return Response('No file part')
@@ -570,11 +572,12 @@ class SimulatorEndPoints:
             if file and SimulatorEndPoints.allowed_file(file.filename):
                 filename = secure_filename(file.filename)
                 file.save(os.path.join(UPLOAD_FOLDER,
-                          request.form.get('userid')+filename))
+                                       request.form.get('userid')+filename))
                 # TODO INSERT FILE PATHE INTO USER TABLE
                 upload_user_pic(request.form.get('userid') +
                                 filename, request.form.get('userid'), request.args.get("type"))
                 return Response("Picture successfully uploaded")
+            return Response("Unauthorised")
         return Response("Wrong method")
 
     def send_file(request):
@@ -582,10 +585,12 @@ class SimulatorEndPoints:
 
         if request.args.get('type') == "admin":
             UPLOAD_FOLDER = 'Database/ProfilePictures/admin/'
+            name = "admin"
         if request.args.get('type') == "user":
+            name = "user"
             UPLOAD_FOLDER = 'Database/ProfilePictures/users/'
 
-        with open(UPLOAD_FOLDER+file_name[0].get("user_pic"), 'rb') as image_file:
+        with open(UPLOAD_FOLDER+file_name[0].get(f"{name}_pic"), 'rb') as image_file:
             encoded_string = base64.b64encode(image_file.read())
         return Response(encoded_string)
 
@@ -737,7 +742,7 @@ class SimulatorEndPoints:
             Rule('/login/username=<string:username>', endpoint='login'),
             Rule('/uploader', endpoint='uploader'),
             Rule('/admin/tools/change_user_info', endpoint='change_user_info'),
-            Rule('/user/get_user_pic', endpoint='get_user_pic'),
+            Rule('/get_user_pic', endpoint='get_user_pic'),
             Rule('/admin/tools/change_market_price',
                  endpoint='change_market_price')
         ])

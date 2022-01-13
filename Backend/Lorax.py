@@ -570,7 +570,7 @@ def upload_user_pic(pic_name, user_id, type):
 
         if type == "admin":
             cursor.execute(
-                'UPDATE admin SET user_pic=%s WHERE user_id=%s', (pic_name, user_id,))
+                'UPDATE admin SET admin_pic=%s WHERE admin_id=%s', (pic_name, user_id,))
 
         else:
             cursor.execute(
@@ -653,7 +653,7 @@ def get_user_pic(user_id, table):
         cursor = connection.cursor(dictionary=True)
         if table == "admin":
             cursor.execute(
-                'SELECT user_pic FROM admin WHERE user_id=%s', (user_id,))
+                'SELECT admin_pic FROM admin WHERE admin_id=%s', (user_id,))
 
         if table == "user":
             cursor.execute(
