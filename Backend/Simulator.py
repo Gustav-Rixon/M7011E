@@ -209,7 +209,14 @@ class Simulator:
         """
         total_production = 0
         for power_plant in list_of_power_plants:
-            total_production += power_plant._production
+
+            power_plant._buffert.content += power_plant._production * \
+                (1-power_plant._ratio_to_market)
+
+            power_plant.check_buffert()
+
+            total_production += power_plant._production * \
+                (power_plant._ratio_to_market)
         return total_production
 
     def run(self):
@@ -256,8 +263,6 @@ class Simulator:
 
             global_market.update_market(
                 simulator_production-simulator_consumption)
-
-            global_market.market_buffert.content += 1
 
             if self._debugmode == True:
 
@@ -313,7 +318,6 @@ class SimulatorEndPoints:
                             power_plant._changing_power_number_of_cyckels = number_of_cycels
                             power_plant._change_left = change
                             power_plant._changing_power = True
-
                     return Response("Changing power")
             return Response("Unauthorised")
         return Response("Wrong request method")
@@ -325,20 +329,46 @@ class SimulatorEndPoints:
                 for power_plant in global_power_plant_list:
                     data.append(
                         {"id": power_plant._id, "production": power_plant._production, "status": power_plant._status,
-                         "Buffert content": power_plant._buffert.content, "Buffert size": power_plant._buffert.capacity})
+                         "Buffert content": power_plant._buffert.content, "Buffert size": power_plant._buffert.capacity, "Ratio to market": power_plant._ratio_to_market})
                 contents = json.dumps(data, sort_keys=False)
                 return Response(contents, content_type="application/json")
             return Response("Unauthorised")
         return Response("Wrong request method")
 
     def change_power_plant_ratio(request):
-        if request.method == ('GET'):
+        if request.method == ('POST'):
             if check_JWT(request.args.get("token"), request.args.get('id'), adminKey):
                 for power_plant in global_power_plant_list:
                     if int(request.args.get("target")) == power_plant._id:
+
+                        if int(request.args.get("target")) < 0:
+                            return Response("Must be posetive")
+
                         power_plant._ratio_to_market = int(
-                            request.args.get("ratio"))
+                            request.args.get("ratio"))/100
                     return Response("Changing ratio")
+                return Response("Powerplant not found")
+            return Response("Unauthorised")
+        return Response("Wrong request method")
+
+    def send_to_market(request):
+        if request.method == ('POST'):
+            if check_JWT(request.args.get("token"), request.args.get('id'), adminKey):
+                for power_plant in global_power_plant_list:
+                    if int(request.args.get("target")) == power_plant._id:
+
+                        if int(request.args.get("amount")) < 0:
+                            return Response("Must be posetive")
+
+                        amount = int(request.args.get("amount"))
+
+                        if amount > power_plant._buffert.content:
+                            return Response("Cant sell more then curret content")
+
+                        Market.send_to_market(amount)
+                        power_plant._buffert.content -= amount
+
+                    return Response("Sent power to market")
                 return Response("Powerplant not found")
             return Response("Unauthorised")
         return Response("Wrong request method")
@@ -670,6 +700,7 @@ class SimulatorEndPoints:
                  endpoint='admin_view_power_plants'),
             Rule('/admin/tools/change_power_ratio',
                  endpoint='admin_change_power_ratio'),
+            Rule('admin/tools/send_to_market', endpoint='admin_send_to_market'),
             Rule(
                 '/buy/house_hold/prosumer/house_hold=<int:id>&amount=<int:amount>&token=<string:token>', endpoint='buy'),
             Rule(
@@ -709,7 +740,8 @@ class SimulatorEndPoints:
                  'change_user_info': SimulatorEndPoints.change_user_credentials,
                  'change_market_price': SimulatorEndPoints.change_market_price,
                  'admin_change_power_ratio': SimulatorEndPoints.change_power_plant_ratio,
-                 'admin_view_power_plants': SimulatorEndPoints.view_power_plant}
+                 'admin_view_power_plants': SimulatorEndPoints.view_power_plant,
+                 'admin_send_to_market': SimulatorEndPoints.send_to_market}
 
         request = Request(environ)
         urls = url_map.bind_to_environ(environ)
