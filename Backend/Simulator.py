@@ -86,8 +86,9 @@ class Events:
             if power_plant._changing_power == True:
                 change = do_ceil(
                     power_plant._change_left, power_plant._changing_power_number_of_cyckels)
-                power_plant._change_left -= abs(change)
-                power_plant._production += change
+                power_plant._change_left -= change
+
+                power_plant._production -= -change
                 power_plant._changing_power_number_of_cyckels -= 1
 
                 if power_plant._changing_power_number_of_cyckels == 0:
@@ -304,8 +305,8 @@ class SimulatorEndPoints:
                             return Response("Changeing to nothing")
 
                         else:
-                            change = abs(int(request.args.get('power')
-                                             ) - power_plant._production)
+                            change = int(request.args.get('power')
+                                         ) - power_plant._production
 
                             number_of_cycels = random.randint(1, 10)
                             power_plant._changing_power_number_of_cyckels = number_of_cycels
@@ -338,7 +339,7 @@ class SimulatorEndPoints:
             if check_JWT(data.get("token"), data.get('id'), key):
                 for house_hold in global_household_list:
                     if house_hold._id == data.get('id'):
-                        if house_hold._blocked_status == True and house_hold._blocked_number_of_cykels > 0:
+                        if house_hold._blocked_status == True and int(house_hold._blocked_number_of_cykels) > 0:
                             return Response(f"Failed you are blocked from selling. Blocked for {house_hold._blocked_number_of_cykels} cycles")
                         if data.get('amount') < house_hold._buffert.content:
                             house_hold._buffert.content -= data.get('amount')
@@ -364,9 +365,9 @@ class SimulatorEndPoints:
         if request.method == ('POST'):
             if check_JWT(request.args.get("token"), request.args.get('id'), adminKey):
                 global global_household_list
-                cycle = request.args.get('cycle')
-                id = request.args.get('id')
-                if cycle <= 0:
+                cycle = int(request.args.get('cycle'))
+                id = int(request.args.get('target'))
+                if int(cycle) <= 0:
                     return Response("You need a pos int!")
 
                 for house_hold in global_household_list:
@@ -595,6 +596,13 @@ class SimulatorEndPoints:
             return Response("Unauthorised or bad request")
         return Response("Wrong request method")
 
+    def remove_user(request):
+        if request.method == 'POST':
+            if check_JWT(request.args.get('token'), int(request.args.get('id')), adminKey):
+                remove_user_from_database(request.args.get('target'))
+            return Response("Unauthorised or bad request")
+        return Response("Wrong request method")
+
     @responder
     def application(environ, start_response):
         """[summary]
@@ -635,8 +643,6 @@ class SimulatorEndPoints:
             Rule(
                 '/register/username=<string:username>&password=<string:password>&email=<string:email>&address=<string:address>&zipcode=<string:zipcode>&prosumer=<int:prosumer>', endpoint='register'),
             Rule('/login/username=<string:username>', endpoint='login'),
-            Rule('/test/username=<string:username>', endpoint='test'),
-            Rule('/test', endpoint='test2'),
             Rule('/uploader', endpoint='uploader'),
             Rule('/admin/tools/change_user_info', endpoint='change_user_info'),
             Rule('/user/get_user_pic', endpoint='get_user_pic'),
@@ -651,10 +657,8 @@ class SimulatorEndPoints:
                  'get_house_hold_data': SimulatorEndPoints.get_house_hold_data,
                  'register': register,
                  'login': login,
-                 'test': add_house_hold,
                  'admin_login': admin_login,
-                 'remove_user': remove_user_from_database,
-                 'test2': remove_user_from_simulation,
+                 'remove_user': SimulatorEndPoints.remove_user,
                  'block_user': SimulatorEndPoints.block_user,
                  'get_market_data': SimulatorEndPoints.get_market_info,
                  'change_buffert_to_market': SimulatorEndPoints.change_ratio_to_market,
