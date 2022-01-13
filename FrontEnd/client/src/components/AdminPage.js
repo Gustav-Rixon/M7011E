@@ -2,6 +2,7 @@ import React, {useEffect, useState} from "react";
 import Axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { JsonToTable } from "react-json-to-table";
+import ReactSlider from 'react-slider'
 Axios.defaults.withCredentials = false;
 function clean(value){
   value = value.toLowerCase();
@@ -22,14 +23,11 @@ function AdminPage() {
         const[proId, setProId] = useState("");
         const[blockId, setBlockId] = useState("");
         const[delId, setDelId] = useState("");
-        //const[proId, setProId] = useState("");
         const[address, setAddress] = useState("");
         const[zip, setZip] = useState("");
         const[password, setPassword] = useState("");
         const[email, setEmail] = useState("");
         const[block, setBlock] = useState("");
-        const[securityCheck, setSecurityCheck] = useState(0);
-        //const[loginStatus, setLoginStatus] = useState("");
         const[prosumer, setProsumer] = useState('0');
         const[ratio, setRatio] = useState("NaN");
         const[tempratio, setTempRatio] = useState("NaN");
@@ -41,7 +39,7 @@ function AdminPage() {
         const[bufferCap, setBufferCap] = useState("NaN");
         const[temp, setTemp] = useState("NaN");
         const[netProd, setNetProd] = useState("0")
-        const[marketprice, setmarketprice] = useState("0")
+        const[price, setprice] = useState("")
         const[picBase, setpicBase] = useState("");;
         const[selectedFile, setSelectedFile] = useState();
         const[isSelected, setIsSelected] = useState(false);
@@ -128,17 +126,6 @@ function AdminPage() {
           }
         }).catch(error => console.log(error));
     };
-        const changePowerplantStatus = () => {
-          Axios.post("http://localhost:3001/admin", {
-          }).then((response)=> {
-            if(response.data.message){
-            }else{
-              localStorage.setItem("admintoken", response.data.token)
-              localStorage.setItem("adminid", 1)
-              navigate('/AdminPage');
-            }
-          }).catch(err => err);
-        };
         const changePowerplantProduction = () => {
           Axios.post("http://localhost:3001/admin", {
           }).then((response)=> {
@@ -150,16 +137,14 @@ function AdminPage() {
             }
           }).catch(err => err);
         };
-        const changeElectricityprice = () => {
-          Axios.post("http://localhost:3001/admin", {
+        const submitElectricityPrice = () => {
+          Axios.post("http://localhost:3001/marketprice", {
+            price: price,
+            token: localStorage.getItem("admintoken"),
+            adminid: localStorage.getItem("adminid")
           }).then((response)=> {
-            if(response.data.message){
-            }else{
-              localStorage.setItem("admintoken", response.data.token)
-              localStorage.setItem("adminid", 1)
-              navigate('/AdminPage');
-            }
-          }).catch(err => err);
+          console.log(response.data)
+          }).catch(error => console.log(error));
         };
         const changeFactoryRatio = () => {
           Axios.post("http://localhost:3001/admin", {
@@ -232,6 +217,7 @@ function AdminPage() {
         //getPicture()
         getAdminData()
         getUsers()
+        getMarketData()
         const interval = setInterval(() => {
           getMarketData()
           getUsers()
@@ -298,6 +284,7 @@ function AdminPage() {
           setDelId(event.target.value);
         } } />
         <button onClick={deleteUser}> Delete</button>
+        <JsonToTable json={data} />
         <h2>-------------------------Upload Admin Picture-------------------------</h2>
         <input type="file" name="file" onChange={changeHandler} />  
 {isSelected ? (
@@ -321,28 +308,23 @@ function AdminPage() {
 <div>
 
   <button onClick={handleSubmission}>Submit</button>
-
 </div>
-        <JsonToTable json={data} />
-
-
+        <h2>-------------------------Market-------------------------</h2>
+        <label> Set Market Price:</label>
+        <input type="text" name="price" onChange={(event) => {
+          setprice(event.target.value);
+        } } />
+        <button onClick={submitElectricityPrice}> Confirm</button>
+          <JsonToTable json={marketData} />
         <h2>-------------------------Power Plant-------------------------</h2>
-        <label> Id:</label>
-        <input type="text" name="id" onChange={(event) => {
-          setBlockId(event.target.value);
-        } } />
-        <label> Block Time (s):</label>
-        <input type="text" name="block" onChange={(event) => {
-          setBlock(event.target.value);
-        } } />
-        <button onClick={blockUser}> Block</button>
-        <h2>-------------------------Delete User-------------------------</h2>
-        <label> Id:</label>
-        <input type="text" name="id" onChange={(event) => {
-          setDelId(event.target.value);
-        } } />
-        <button onClick={deleteUser}> Delete</button>
-        <JsonToTable json={marketData} />
+
+        <ReactSlider
+    className="horizontal-slider"
+    thumbClassName="example-thumb"
+    trackClassName="example-track"
+    onAfterChange={(value, index) => setTempRatio(value)}
+    renderThumb={(props, state) => <div {...props}>{state.valueNow}</div>}
+/> 
       </div>
         );
 }

@@ -307,9 +307,8 @@ app.post("/admindelete", (req, res)=>{
             res.send("Please check the table below that the user has been removed")
     }).catch(err => err);
 });
-app.get("/factorystatus", (req, res)=>{
+app.get("/factorydata", (req, res)=>{
     const token = req.body.token;
-    const id = req.body.id;
     const adminid = req.body.adminid;
     Axios.post("http://127.0.0.1:5000/admin/tools/remove_user?target="+id+"&id="+adminid+"&token="+token).then(resp => {
 
@@ -318,7 +317,7 @@ app.get("/factorystatus", (req, res)=>{
 });
 app.post("/factorypower", (req, res)=>{
     const token = req.body.token;
-    const id = req.body.id;
+    const power = req.res.power
     const adminid = req.body.adminid;
     Axios.post("http://127.0.0.1:5000/admin/tools/remove_user?target="+id+"&id="+adminid+"&token="+token).then(resp => {
 
@@ -328,11 +327,30 @@ app.post("/factorypower", (req, res)=>{
 //skräp?
 app.post("/factoryratio", (req, res)=>{
     const token = req.body.token;
-    const id = req.body.id;
+    const ratio = req.body.ratio
     const adminid = req.body.adminid;
     Axios.post("http://127.0.0.1:5000/admin/tools/remove_user?target="+id+"&id="+adminid+"&token="+token).then(resp => {
 
             res.send("Please check the table below that the user has been removed")
+    }).catch(err => err);
+});
+app.post("/factorystatus", (req, res)=>{
+    const token = req.body.token;
+    const ratio = req.body.ratio
+    const adminid = req.body.adminid;
+    Axios.post("http://127.0.0.1:5000/admin/tools/remove_user?target="+id+"&id="+adminid+"&token="+token).then(resp => {
+
+            res.send("Please check the table below that the user has been removed")
+    }).catch(err => err);
+});
+
+app.post("/marketprice", (req, res)=>{
+    const token = req.body.token;
+    const price = req.body.price;
+    const adminid = req.body.adminid;
+    Axios.post("http://127.0.0.1:5000/admin/tools/change_market_price?market_price="+price+"&id="+adminid+"&token="+token).then(resp => {
+        console.log(resp.data)
+            //res.send("Please check the table below that the user has been removed")
     }).catch(err => err);
 });
 app.listen(3001);
