@@ -1,8 +1,13 @@
-from math import floor
+from math import floor, ceil
 from Backend.resources.GpsNominatim import *
 import numpy as np
 import statistics
 import jwt
+
+
+def do_ceil(num, num_of_cycles):
+    number = ceil(num/num_of_cycles)
+    return number
 
 
 def calc_wind(station_id, distance):

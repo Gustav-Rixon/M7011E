@@ -2,7 +2,7 @@ import json
 from time import sleep
 from Backend.resources.RateLimited import rate_limited
 from Backend.resources.GpsNominatim import get_data
-from Backend.resources.Functions import calc_temp, calc_wind, calc_electricity_consumption, calc_production, check_JWT
+from Backend.resources.Functions import calc_temp, calc_wind, calc_electricity_consumption, calc_production, check_JWT, do_ceil
 from werkzeug.wrappers import Request, Response
 from Backend.Lorax import create_house_holds_objects, create_power_plants_objects, register, login, add_house_hold, admin_login, check, remove_user_from_database, remove_user_from_simulation, upload_user_pic, get_user_pic, change_user_info
 from Backend.Market import Market
@@ -79,6 +79,20 @@ class Events:
                 household._power_status = 0
                 household._blackout_duration = number_of_cycels
                 household._consumption = 0
+
+    def change_power():
+        global global_power_plant_list
+        for power_plant in global_power_plant_list:
+            if power_plant._changing_power == True:
+                change = do_ceil(
+                    power_plant._change_left, power_plant._changing_power_number_of_cyckels)
+                power_plant._change_left -= abs(change)
+                power_plant._production += change
+                power_plant._changing_power_number_of_cyckels -= 1
+
+                if power_plant._changing_power_number_of_cyckels == 0:
+                    power_plant._changing_power = False
+                    pass
 
 
 class Simulator:
@@ -225,6 +239,7 @@ class Simulator:
 
             Events.blackout_house_hold()
             Events.remove_blackout()
+            Events.change_power()
 
             global_household_list = self._consumer_households_in_siumulation + \
                 self._prosumer_households_in_siumulation
@@ -286,6 +301,18 @@ class SimulatorEndPoints:
                     if power_plant._id == int(request.args.get('target')):
 
                         if int(request.args.get('power')) == power_plant._production:
+                            return Response("Changeing to nothing")
+
+                        else:
+                            change = abs(int(request.args.get('power')
+                                             ) - power_plant._production)
+
+                            number_of_cycels = random.randint(1, 10)
+                            power_plant._changing_power_number_of_cyckels = number_of_cycels
+                            power_plant._change_left = change
+                            power_plant._changing_power = True
+
+                    return Response("Changing power")
 
             return Response("Unauthorised")
         return Response("Wrong request method")
@@ -323,21 +350,22 @@ class SimulatorEndPoints:
         return Response("Wrong request method")
 
     @rate_limited(1/10, mode='kill')  # FIX
-    def change_market_size(request, **data):
+    def change_market_size(request):
         if request.method == ('POST'):
-            if check_JWT(data.get("token"), data.get('id'), adminKey):
+            if check_JWT(request.args.get("token"), request.args.get('id'), adminKey):
                 global global_market
-                Market.change_market_size(global_market, data.get('size'))
-                return Response(f"Changning market size to {data.get('size')} hamsters insted")
+                Market.change_market_size(
+                    global_market, request.args.get('size'))
+                return Response(f"Changning market size to { request.args.get('size')}")
             return Response("Unauthorised")
         return Response("Wrong request method")
 
-    def block_user(request, **data):
+    def block_user(request):
         if request.method == ('POST'):
-            if check_JWT(data.get("token"), data.get('id'), adminKey):
+            if check_JWT(request.args.get("token"), request.args.get('id'), adminKey):
                 global global_household_list
-                cycle = data.get('cycle')
-                id = data.get('id')
+                cycle = request.args.get('cycle')
+                id = request.args.get('id')
                 if cycle <= 0:
                     return Response("You need a pos int!")
 
@@ -586,15 +614,13 @@ class SimulatorEndPoints:
         url_map = Map([
             Rule(
                 '/admin/tools/change_power', endpoint='change_power'),
-            Rule('/admin/tools/block_user_from_trade/house_hold_id=<int:id>&number_of_cycle=<int:cycle>',
-                 endpoint='block_user'),
-            Rule('/admin/tools/change_market_size/size=<int:size>',
+            Rule('/admin/tools/block_user_from_trade', endpoint='block_user'),
+            Rule('/admin/tools/change_market_size',
                  endpoint="change_market_size"),
             Rule('/admin/login/username=<string:username>',
                  endpoint='admin_login'),
-            Rule('/admin/remove_user/user_id=<int:user_id>',
-                 endpoint='remove_user'),
-            Rule('/admin/view', endpoint='admin_view'),
+            Rule('/admin/tools/remove_user', endpoint='remove_user'),
+            Rule('/admin/tools/view', endpoint='admin_view'),
             Rule(
                 '/buy/house_hold/prosumer/house_hold=<int:id>&amount=<int:amount>&token=<string:token>', endpoint='buy'),
             Rule(

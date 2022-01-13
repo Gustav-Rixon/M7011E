@@ -62,12 +62,9 @@ class PowerPlant:
         self._production = production
         self._status = status  # 0 = off, 1 = starting up, 2 = on
         self._buffert = Buffert(buffert_capacity, buffert_content)
-
-    def turn_on(self):
-        self._status = 1
-
-    def turn_off(self):
-        pass
+        self._changing_power = False
+        self._changing_power_number_of_cyckels = 0
+        self._change_left = 0
 
 
 class Buffert:
@@ -349,7 +346,7 @@ def add_new_user(consumer_households_in_siumulation, prosumer_households_in_sium
             return consumer_households_in_siumulation, prosumer_households_in_siumulation
 
 
-def remove_user_from_database(request, **data):
+def remove_user_from_database(request):
     """[summary]
         Takes on an request and removes that user from the database.
 
@@ -363,7 +360,7 @@ def remove_user_from_database(request, **data):
         connection = database_cred()
         cursor = connection.cursor(dictionary=True)
         cursor.execute('DELETE FROM user WHERE user_id=%s',
-                       (data.get('user_id'),))
+                       (request.args.get('user_id'),))
         connection.commit()
 
     except Error as e:
