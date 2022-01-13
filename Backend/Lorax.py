@@ -67,6 +67,9 @@ class PowerPlant:
         self._change_left = 0
         self._ratio_to_market = 0.0  # in %
 
+    def check_buffert(self):
+        Buffert.buffert_checker(self._buffert)
+
 
 class Buffert:
     """[summary]
