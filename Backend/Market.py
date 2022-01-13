@@ -19,10 +19,13 @@ class Market:
             amount ([type]): [description]
         """
         self.market_buffert.content += amount
+
         Buffert.buffert_checker(self.market_buffert)
 
         if self.market_buffert.content <= 0:
             self.market_buffert.content = 0
+
+        return self.market_buffert.content
 
     def send_to_market(self, amount):
         """[summary]
@@ -61,6 +64,12 @@ class Market:
             number_of_users ([int]): [number of users in the simulation]
         """
 
+        if self.market_buffert.content == None:
+            self.market_buffert.content = 0
+
         # Check so that price is not less then fixed price
         self.recommended_market_price = (
             number_of_users*current_consumption) - self.market_buffert.content
+
+        if self.recommended_market_price < 0:
+            self.recommended_market_price = 100
