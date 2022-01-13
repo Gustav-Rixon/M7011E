@@ -65,6 +65,7 @@ class PowerPlant:
         self._changing_power = False
         self._changing_power_number_of_cyckels = 0
         self._change_left = 0
+        self._ratio_to_market = 0.0  # in %
 
 
 class Buffert:
@@ -346,7 +347,7 @@ def add_new_user(consumer_households_in_siumulation, prosumer_households_in_sium
             return consumer_households_in_siumulation, prosumer_households_in_siumulation
 
 
-def remove_user_from_database(request):
+def remove_user_from_database(target):
     """[summary]
         Takes on an request and removes that user from the database.
 
@@ -360,7 +361,7 @@ def remove_user_from_database(request):
         connection = database_cred()
         cursor = connection.cursor(dictionary=True)
         cursor.execute('DELETE FROM user WHERE user_id=%s',
-                       (int(request.args.get('target')),))
+                       (target,))
         connection.commit()
 
     except Error as e:
@@ -369,7 +370,7 @@ def remove_user_from_database(request):
         if connection.is_connected():
             connection.close()
             cursor.close()
-            return cursor
+            return cursor.rowcount
 
 
 def remove_user_from_simulation(consumer_households_in_siumulation, prosumer_households_in_siumulation):
