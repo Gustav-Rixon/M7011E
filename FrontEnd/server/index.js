@@ -19,6 +19,7 @@ app.use(cors({
 }));
 var FormData = require('form-data');
 const multer = require('multer');
+const { response } = require('express');
 const upload = multer();
 app.use(cors());
 app.use(cookieParser());
@@ -162,6 +163,7 @@ app.post("/sell", (req, res)=>{
     const id = req.body.id;
     const sell = req.body.sell;
     Axios.post("http://127.0.0.1:5000/sell/house_hold/prosumer/house_hold_id="+id+"&amount="+sell+"&token="+token).then(resp => {
+        console.log(resp.data)
         res.json({message: resp.data})
     }).catch(err => err);
 });
@@ -212,16 +214,29 @@ app.post("/logout", (req, res)=>{
 app.get("/admindata", verifyJWT, (req, res)=>{
     const token = req.header("x-access-token");
     const id = req.header("user-id");
-    Axios.get("http://127.0.0.1:5000/admin/view?token="+token+"&id="+ id).then(resp => {
+    Axios.get("http://127.0.0.1:5000/admin/tools/view?token="+token+"&id="+ id).then(resp => {
         res.json({data: resp.data})
     }).catch(err => err);
 });
 //behöver token check
 app.post("/adminblock", (req, res)=>{
-    const token = req.header("x-access-token");
-    const id = req.header("user-id");
-    Axios.post("http://127.0.0.1:5000/admin/tools/block_user_from_trade/house_hold_id="+id+"&number_of_cycle="+ block).then(resp => {
+    console.log("hej")
+    const token = req.body.token;
+    const id = req.body.id;
+    const block = req.body.block;
+    const adminid = req.body.adminid;
+    Axios.post("http://127.0.0.1:5000/admin/tools/block_user_from_trade?target="+id+"&cycle="+ block+"&id="+adminid+"&token="+token).then(resp => {
+        console.log(resp.data)
         res.json({data: resp.data})
+    }).catch(err => err);
+});
+app.post("/admindelete", (req, res)=>{
+    const token = req.body.token;
+    const id = req.body.id;
+    const adminid = req.body.adminid;
+    Axios.post("http://127.0.0.1:5000/admin/tools/remove_user?target="+id+"&id="+adminid+"&token="+token).then(resp => {
+
+            res.send("Please check the table below that the user has been removed")
     }).catch(err => err);
 });
 app.get("/loggedin", verifyJWT, (req,res)=>{
@@ -230,8 +245,6 @@ app.get("/loggedin", verifyJWT, (req,res)=>{
      for (var i in activeUsers) {
          let n= 0;
         while (n <= temparray.length) {
-            console.log("hello"+temparray[n])
-            console.log(activeUsers[i]["id"])
             if(activeUsers[i]["id"] !== temparray[n] && activeUsers[i]["id"] !== temparray[n-1]){
                 temparray.push(activeUsers[i]["id"])
             }
@@ -245,12 +258,12 @@ app.post("/adminchange", (req,res) =>{
     var message = "Responce:"
     const {id,name,zip,address,password,email,prosumer,token,adminid} =req.body;
     if(name !== "" && !name.includes("/", "=", "?", " ", "*", "<", ">", "|", ":", "/\\\//g")){
-        Axios.post("http://127.0.0.1:5000/admin/tool/change_user_info?token="+ token +"&id="+adminid+"&target_id="+id+"&target_row=user_name&user_name="+name).then(resp => {
+        Axios.post("http://127.0.0.1:5000/admin/tools/change_user_info?token="+ token +"&id="+adminid+"&target_id="+id+"&target_row=user_name&user_name="+name).then(resp => {
             console.log(resp.data)
         }).catch(message += "couldnt change name, ");
     }
     if(address !== "" && zip !== 0){
-        Axios.post("http://127.0.0.1:5000/admin/tool/change_user_info?token="+ token +"&id="+adminid+"&target_id="+id+"&target_row=address_zipcode&address="+address+"&zipcode"+ zip).then(resp => {
+        Axios.post("http://127.0.0.1:5000/admin/tools/change_user_info?token="+ token +"&id="+adminid+"&target_id="+id+"&target_row=address_zipcode&address="+address+"&zipcode"+ zip).then(resp => {
             console.log(resp.data)
         }).catch(message += "address/zip couldn't change, ");
     }
@@ -261,12 +274,12 @@ app.post("/adminchange", (req,res) =>{
             }
             var vhash = hash.replace(/\//g, "slash");
             var shash = encodeURIComponent(vhash)
-        Axios.post("http://127.0.0.1:5000/admin/tool/change_user_info?token="+ token +"&id="+adminid+"&target_id="+id+"&target_row=password&password="+shash).then(resp => {
+        Axios.post("http://127.0.0.1:5000/admin/tools/change_user_info?token="+ token +"&id="+adminid+"&target_id="+id+"&target_row=password&password="+shash).then(resp => {
             console.log(resp.data)
         }).catch(message += "password couldn't change, ");
     })}
     if(email !== ""&& email.includes("@",".")){
-        Axios.post("http://127.0.0.1:5000/admin/tool/change_user_info?token="+ token +"&id="+adminid+"&target_id="+id+"&target_row=email&email="+ email).then(resp => {
+        Axios.post("http://127.0.0.1:5000/admin/tools/change_user_info?token="+ token +"&id="+adminid+"&target_id="+id+"&target_row=email&email="+ email).then(resp => {
             console.log(resp.data)
         }).catch(message += "email couldn't change, ");
     }
@@ -276,4 +289,50 @@ app.post("/adminchange", (req,res) =>{
     res.send(message)
 
 })
+app.post("/admindelete", (req, res)=>{
+    const token = req.body.token;
+    const id = req.body.id;
+    const adminid = req.body.adminid;
+    Axios.post("http://127.0.0.1:5000/admin/tools/remove_user?target="+id+"&id="+adminid+"&token="+token).then(resp => {
+
+            res.send("Please check the table below that the user has been removed")
+    }).catch(err => err);
+});
+app.post("/admindelete", (req, res)=>{
+    const token = req.body.token;
+    const id = req.body.id;
+    const adminid = req.body.adminid;
+    Axios.post("http://127.0.0.1:5000/admin/tools/remove_user?target="+id+"&id="+adminid+"&token="+token).then(resp => {
+
+            res.send("Please check the table below that the user has been removed")
+    }).catch(err => err);
+});
+app.get("/factorystatus", (req, res)=>{
+    const token = req.body.token;
+    const id = req.body.id;
+    const adminid = req.body.adminid;
+    Axios.post("http://127.0.0.1:5000/admin/tools/remove_user?target="+id+"&id="+adminid+"&token="+token).then(resp => {
+
+            res.send("Please check the table below that the user has been removed")
+    }).catch(err => err);
+});
+app.post("/factorypower", (req, res)=>{
+    const token = req.body.token;
+    const id = req.body.id;
+    const adminid = req.body.adminid;
+    Axios.post("http://127.0.0.1:5000/admin/tools/remove_user?target="+id+"&id="+adminid+"&token="+token).then(resp => {
+
+            res.send("Please check the table below that the user has been removed")
+    }).catch(err => err);
+});
+//skräp?
+app.post("/factoryratio", (req, res)=>{
+    const token = req.body.token;
+    const id = req.body.id;
+    const adminid = req.body.adminid;
+    Axios.post("http://127.0.0.1:5000/admin/tools/remove_user?target="+id+"&id="+adminid+"&token="+token).then(resp => {
+
+            res.send("Please check the table below that the user has been removed")
+    }).catch(err => err);
+});
 app.listen(3001);

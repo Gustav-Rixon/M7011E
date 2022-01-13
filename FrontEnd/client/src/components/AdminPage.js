@@ -2,7 +2,6 @@ import React, {useEffect, useState} from "react";
 import Axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { JsonToTable } from "react-json-to-table";
-import { Listbox } from '@headlessui/react'
 Axios.defaults.withCredentials = false;
 function clean(value){
   value = value.toLowerCase();
@@ -15,6 +14,7 @@ function clean(value){
 //TODO fixa sälj update ratio + bild
 function AdminPage() { 
         const [data, setData] = useState([]);
+        const [marketData, setMarketData] = useState([]);
         const [active, setActive] = useState([]);
         const navigate = useNavigate();
         const[name, setName] = useState("");
@@ -28,7 +28,7 @@ function AdminPage() {
         const[password, setPassword] = useState("");
         const[email, setEmail] = useState("");
         const[block, setBlock] = useState("");
-        const[securityCheck, setSecurityCheck] = useState('0');
+        const[securityCheck, setSecurityCheck] = useState(0);
         //const[loginStatus, setLoginStatus] = useState("");
         const[prosumer, setProsumer] = useState('0');
         const[ratio, setRatio] = useState("NaN");
@@ -46,7 +46,7 @@ function AdminPage() {
         const[selectedFile, setSelectedFile] = useState();
         const[isSelected, setIsSelected] = useState(false);
 
-	const changeHandler = (event) => {
+	      const changeHandler = (event) => {
 
 		setSelectedFile(event.target.files[0]);
 
@@ -55,7 +55,7 @@ function AdminPage() {
 	};
 
   //TODO skicka från index.js
-	const handleSubmission = () => {
+	      const handleSubmission = () => {
     var data = new FormData();
       data.append('file', selectedFile);
       data.append('userid', localStorage.getItem("adminid"));
@@ -78,31 +78,27 @@ function AdminPage() {
 
 
 
-                const blockUser = () => {
-          Axios.post("http://localhost:3001/admin", {
+        const blockUser = () => {
+          Axios.post("http://localhost:3001/adminblock", {
+            token: localStorage.getItem("admintoken"),
+            adminid: localStorage.getItem("adminid"),
+            id: blockId,
+            block: block
+
           }).then((response)=> {
-            if(response.data.message){
-            }else{
-              localStorage.setItem("admintoken", response.data.token)
-              localStorage.setItem("adminid", 1)
-              navigate('/AdminPage');
-            }
+            alert(response.data.data)
           }).catch(err => err);
       };
       const deleteUser = () => {
-        if(securityCheck === 1) {
-          Axios.post("http://localhost:3001/admin", {
+          Axios.post("http://localhost:3001/admindelete", {
+            token: localStorage.getItem("admintoken"),
+            adminid: localStorage.getItem("adminid"),
+            id: delId,
+
           }).then((response)=> {
-            if(response.data.message){
-            }else{
-              localStorage.setItem("admintoken", response.data.token)
-              localStorage.setItem("adminid", 1)
-              navigate('/AdminPage');
-            }
+            alert(response.data)
+            window.location.reload(false);
           }).catch(err => err);
-        }else{
-          alert("Please fill in the checkbox to confirm removal of user with id:  "+ delId)
-        }
       };
         const changeUser = () => {
           Axios.post("http://localhost:3001/adminchange", {
@@ -213,7 +209,8 @@ function AdminPage() {
     const getMarketData = () =>{
       Axios.get("http://localhost:3001/marketdata", {
       }).then((response)=> {
-        setmarketprice(response.data.data["Market Info"][0].market_price)
+        console.log(response.data.data)
+        setMarketData(response.data.data)
         }).catch(err => err);
   };
   const getPicture = () =>{
@@ -232,10 +229,11 @@ function AdminPage() {
 
       useEffect(() => {
         //do at refresh
-        getPicture()
+        //getPicture()
         getAdminData()
         getUsers()
         const interval = setInterval(() => {
+          getMarketData()
           getUsers()
         }, 10000);
 
@@ -245,8 +243,8 @@ function AdminPage() {
           
         <div className="AdminPage">
           <img src={`data:image/jpeg;base64,${picBase}`} />
+          <h1> Kolfall </h1>
           <h1>Currently active ids: {active}</h1>
-           <h1> Kolfall </h1>
         <h2>--------------------Change User--------------------</h2>
         <label> Id</label>
         <input type="text" name="id" onChange={(event) => {
@@ -299,14 +297,9 @@ function AdminPage() {
         <input type="text" name="id" onChange={(event) => {
           setDelId(event.target.value);
         } } />
-        <label> Are you sure? </label>
-          <input type="checkbox" name="checkbox" onChange={(event) =>{
-          setSecurityCheck(event.target.checked ? '1' : '0')
-        }
-        } />
         <button onClick={deleteUser}> Delete</button>
-        <input type="file" name="file" onChange={changeHandler} />
-
+        <h2>-------------------------Upload Admin Picture-------------------------</h2>
+        <input type="file" name="file" onChange={changeHandler} />  
 {isSelected ? (
 
   <div>
@@ -331,6 +324,25 @@ function AdminPage() {
 
 </div>
         <JsonToTable json={data} />
+
+
+        <h2>-------------------------Power Plant-------------------------</h2>
+        <label> Id:</label>
+        <input type="text" name="id" onChange={(event) => {
+          setBlockId(event.target.value);
+        } } />
+        <label> Block Time (s):</label>
+        <input type="text" name="block" onChange={(event) => {
+          setBlock(event.target.value);
+        } } />
+        <button onClick={blockUser}> Block</button>
+        <h2>-------------------------Delete User-------------------------</h2>
+        <label> Id:</label>
+        <input type="text" name="id" onChange={(event) => {
+          setDelId(event.target.value);
+        } } />
+        <button onClick={deleteUser}> Delete</button>
+        <JsonToTable json={marketData} />
       </div>
         );
 }
