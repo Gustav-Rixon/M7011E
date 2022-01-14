@@ -26,7 +26,7 @@ This project was made for [M7011E "Design of Dynamic Web Systems"](https://www.l
   
   Setup MySQL database from our database schema [ADD FILE NAME]
   
-  Configure database and JWT token credentials in configuration.json and in FrontEnd/server/keys.json.
+  Configure database and JWT token credentials in configuration.json.
   
 ## Usage
 
