@@ -30,11 +30,11 @@ This project was made for [M7011E "Design of Dynamic Web Systems"](https://www.l
   
 ## Usage
 
-From /../M7011E run python .\main.py to start the simulator.
+From `/../M7011E` run `python .\main.py` to start the simulator.
 
-From /../client run npm start
+From `/../client` run `npm start`
 
-From /../server node middleman.js
+From `/../server` run node `middleman.js`
 
 ## Documentation
 
