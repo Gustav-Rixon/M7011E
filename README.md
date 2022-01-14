@@ -22,6 +22,8 @@ This project was made for [M7011E "Design of Dynamic Web Systems"](https://www.l
 ### Run
   * `git clone https://github.com/Gustav-Rixon/M7011E`
   
+  * `pip install requirements.txt`
+  
   Setup MySQL database from our database schema [ADD FILE NAME]
   
   Configure configuration.json in conf with your database credentials. You can also change the keys for the JWT tokens which we recommend. 
