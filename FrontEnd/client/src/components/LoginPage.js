@@ -4,6 +4,7 @@ import ReactSlider from "react-slider";
 import axios from "axios";
 axios.defaults.withCredentials = false;
 
+//LoginPage that all the users get to see
 function LoginPage() {
   const navigate = useNavigate();
   const id = localStorage.getItem("id");
@@ -118,7 +119,7 @@ function LoginPage() {
         } else {
           localStorage.setItem("token", null);
           localStorage.setItem("id", null);
-          navigate("/sign-in");
+          navigate("/login");
           alert("You have timed out please log in again");
         }
       })
@@ -140,7 +141,7 @@ function LoginPage() {
       .then(
         localStorage.setItem("token", null),
         localStorage.setItem("id", null),
-        navigate("/sign-in")
+        navigate("/login")
       )
       .catch((err) => err);
   };

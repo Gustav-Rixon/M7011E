@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { JsonToTable } from "react-json-to-table";
 import ReactSlider from "react-slider";
 Axios.defaults.withCredentials = false;
+// a function to clean the input to address and zip so that it can be used in Nominatim API
 function clean(value) {
   value = value.toLowerCase();
   value = value.replace(/å/g, "a");
@@ -12,7 +13,7 @@ function clean(value) {
   value = value.replace(/\s/g, "+");
   return value;
 }
-//TODO fixa sälj update ratio + bild
+//AdminPage with all the functionality an admin needs 
 function AdminPage() {
   const [data, setData] = useState([]);
   const [marketData, setMarketData] = useState([]);
@@ -45,7 +46,6 @@ function AdminPage() {
     setIsSelected(true);
   };
 
-  //TODO skicka från index.js
   const handleSubmission = () => {
     var data = new FormData();
     data.append("file", selectedFile);
@@ -177,19 +177,7 @@ function AdminPage() {
       },
     })
       .then((response) => {
-        console.log(response.data);
-        if (response.data) {
           setActive(response.data);
-
-          console.log(active);
-        } else {
-          // localStorage.setItem("admintoken", null),
-          //  localStorage.setItem("adminid", null),
-          navigate("/admin");
-          alert(
-            "Session timed out! Please log in again if you wish to continue"
-          );
-        }
       })
       .catch((err) => err);
   };
@@ -257,6 +245,7 @@ function AdminPage() {
     getMarketData();
     getPowerPlantData();
     const interval = setInterval(() => {
+      //do every 10 seconds or 0.1hz
       getAdminData();
       getMarketData();
       getUsers();

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Axios from "axios";
 import { useNavigate } from "react-router-dom";
 Axios.defaults.withCredentials = false;
-
+//Admin component for FrontEnd from here the admin can login
 function Admin() {
   const navigate = useNavigate();
   const [loginName, setLoginName] = useState("");
@@ -19,7 +19,7 @@ function Admin() {
         } else {
           localStorage.setItem("admintoken", response.data.token);
           localStorage.setItem("adminid", 1);
-          navigate("/AdminPage");
+          navigate("/adminpage");
         }
       })
       .catch((err) => err);

@@ -8,7 +8,7 @@ import Admin from "./components/Admin.js";
 import LoginPage from './components/LoginPage.js';
 import AdminPage from './components/AdminPage.js';
 
-
+// Standard background for the client with the routing to all pages in the componentsfolder
 function App() {
 
 
@@ -18,10 +18,10 @@ function App() {
       <nav className="navbar navbar-expand-lg navbar-light fixed-top">
         <div className="container">
               <li className="nav-item">
-                <Link className="nav-link" to={"/sign-in"}>Login</Link>
+                <Link className="nav-link" to={"/login"}>Login</Link>
               </li>
               <li className="nav-item">
-                <Link className="nav-link" to={"/sign-up"}>Sign up</Link>
+                <Link className="nav-link" to={"/register"}>Sign up</Link>
               </li>
         </div>
       </nav>
@@ -30,11 +30,11 @@ function App() {
         <div className="auth-inner">
           <Routes>
             <Route exact path='/' element={<Login/>} />
-            <Route path="/sign-in" element={<Login/>} />
-            <Route path="/sign-up" element={<Register/>}/>
+            <Route path="/login" element={<Login/>} />
+            <Route path="/register" element={<Register/>}/>
             <Route path="/admin" element={<Admin/>}/>
-            <Route path="/AdminPage" element={<AdminPage/>}/>
-            <Route path="/LoginPage" element={<LoginPage/>}/>
+            <Route path="/adminpage" element={<AdminPage/>}/>
+            <Route path="/loginpage" element={<LoginPage/>}/>
           </Routes>
         </div>
       </div>

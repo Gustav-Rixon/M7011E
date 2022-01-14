@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Axios from "axios";
 import { useNavigate } from "react-router-dom";
 Axios.defaults.withCredentials = false;
-
+//Login component for Frontend allows registered users to login
 function Login() {
   const navigate = useNavigate();
   const [loginName, setLoginName] = useState("");
@@ -19,7 +19,7 @@ function Login() {
         } else {
           localStorage.setItem("token", response.data.token);
           localStorage.setItem("id", response.data.id);
-          navigate("/LoginPage");
+          navigate("/loginpage");
         }
       })
       .catch((err) => err);

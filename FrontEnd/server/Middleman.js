@@ -3,6 +3,9 @@ const Axios = require("axios");
 Axios.defaults.withCredentials = true;
 const app = express();
 const cors = require("cors");
+const fs = require("fs");
+let rawdata = fs.readFileSync("../../conf/configuration.json");
+let keys = JSON.parse(rawdata);
 const bcrypt = require("bcrypt");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
@@ -15,21 +18,17 @@ var whitelist = [
   "'http://127.0.0.1:5000",
 ];
 var activeUsers = [];
-
 app.use(
   cors({
     origin: whitelist,
     credentials: true,
   })
 );
-var FormData = require("form-data");
-const multer = require("multer");
 const { response } = require("express");
-const upload = multer();
 app.use(cors());
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }));
-
+// refreshes every ten seconds and removes the users whos log in session has timed out.
 var maxLifespan = 300000;
 setInterval(function checkItems() {
   activeUsers.forEach(function (item) {
@@ -38,14 +37,15 @@ setInterval(function checkItems() {
     }
   });
 }, 10000);
+//verifies if the JWT is still active or if there is one(used to keep check on who is online).
 const verifyJWT = (req, res, next) => {
   const token = req.header("x-access-token");
   if (!token) {
     res.send("UnAuthorised");
   } else {
-    jwt.verify(token, "Test", (err, decoded) => {
+    jwt.verify(token, keys["JWT_KEYS"]["user_key"], (err, decoded) => {
       if (err) {
-        jwt.verify(token, "admin", (err, decoded) => {
+        jwt.verify(token, keys["JWT_KEYS"]["admin_key"], (err, decoded) => {
           if (err) {
             res.json({ auth: false, message: "Authentication failed" });
           } else {
@@ -61,11 +61,8 @@ const verifyJWT = (req, res, next) => {
   }
 };
 
-app.get("/Authenticated", verifyJWT, (req, res) => {
-  res.send(1);
-});
-
-//TODO fixa så att vägen finns innan det läggs in i table. kalla på rixons backend function om inget returnar så invalid input
+//Registers users by sending a request to the Backend api if there arent any faulty input that disallows the request from being sent.
+//It Hashes the password and converts the hash into something we can send through an url.
 app.post("/register", async (req, res) => {
   const { name, zip, address, password, email, prosumer } = req.body;
   var exists;
@@ -76,7 +73,6 @@ app.post("/register", async (req, res) => {
     password !== "" &&
     !name.includes("/", "=", "?", " ", "*", "<", ">", "|", ":", "/\\//g")
   ) {
-    // console.log(Axios.get('http://nominatim.openstreetmap.org/search.php?street='+address+ '&postalcode='+zip+ '&format=json'))
     await Axios.get(
       "http://nominatim.openstreetmap.org/search.php?street=" +
         address +
@@ -127,10 +123,10 @@ app.post("/register", async (req, res) => {
     res.json({ message: "Faulty inputs" });
   }
 
-  //TODO fixa querry för ny databas
-  //const sqlInsert = "INSERT INTO user (name, email, adress, zip, password) VALUES (?,?,?,?,?)";
+  //Login lets users login if their username exists and if the encrypted pasword matches the hash in the database.
 });
 app.post("/login", (req, res) => {
+  console.log(keys["JWT_KEYS"]["admin_key"]);
   const name = req.body.loginName;
   const password = req.body.loginPassword;
   var id = null;
@@ -141,8 +137,7 @@ app.post("/login", (req, res) => {
     if (id.length > 0 || hash.length > 0) {
       bcrypt.compare(password, hash, (error, answer) => {
         if (answer) {
-          //TODO encrypt if time
-          const token = jwt.sign({ id }, "Test", {
+          const token = jwt.sign({ id }, keys["JWT_KEYS"]["user_key"], {
             expiresIn: 300,
           });
           activeUsers.push({ createdAt: Date.now(), id: id + ", " });
@@ -160,6 +155,7 @@ app.post("/login", (req, res) => {
     }
   });
 });
+//Admin lets admin login if their username exists and if the encrypted pasword matches the hash in the database.
 app.post("/admin", (req, res) => {
   const name = req.body.loginName;
   const password = req.body.loginPassword;
@@ -170,10 +166,9 @@ app.post("/admin", (req, res) => {
       if (hash.length > 0) {
         bcrypt.compare(password, hash, (error, answer) => {
           if (answer) {
-            //TODO encrypt if time
             const id = 1;
-            const token = jwt.sign({ id }, "admin", {
-              expiresIn: 300000000000000000000000000,
+            const token = jwt.sign({ id }, keys["JWT_KEYS"]["admin_key"], {
+              expiresIn: 900,
             });
 
             res.json({ auth: true, token: token, admin: true });
@@ -190,6 +185,7 @@ app.post("/admin", (req, res) => {
     }
   );
 });
+//Sell sends token id and amount.
 app.post("/sell", (req, res) => {
   const token = req.body.token;
   const id = req.body.id;
@@ -207,6 +203,7 @@ app.post("/sell", (req, res) => {
     })
     .catch((err) => err);
 });
+//ratio Recieves token, ratio to be and id and sends it to the backend api.
 app.post("/ratio", (req, res) => {
   const token = req.body.token;
   const tempratio = req.body.tempratio;
@@ -224,6 +221,7 @@ app.post("/ratio", (req, res) => {
     })
     .catch((err) => err);
 });
+//Mydata gets your personal data if your token is verified.
 app.get("/mydata", verifyJWT, (req, res) => {
   const token = req.header("x-access-token");
   const id = req.header("user-id");
@@ -233,6 +231,7 @@ app.get("/mydata", verifyJWT, (req, res) => {
     })
     .catch((err) => err);
 });
+//market data is public knowledge so all you need to do is send the request.
 app.get("/marketdata", (req, res) => {
   Axios.get("http://127.0.0.1:5000/data/get_market_data")
     .then((resp) => {
@@ -240,6 +239,7 @@ app.get("/marketdata", (req, res) => {
     })
     .catch((err) => err);
 });
+//Picture takes a token a type(admin/user) and id to get your personal picture.
 app.post("/picture", (req, res) => {
   const token = req.body.token;
   const type = req.body.type;
@@ -259,6 +259,7 @@ app.post("/picture", (req, res) => {
       console.log(error);
     });
 });
+//logout removes the user from tthe active list.
 app.post("/logout", (req, res) => {
   const id = req.body.id;
   for (var i = 0; i < activeUsers.length; i++) {
@@ -267,6 +268,7 @@ app.post("/logout", (req, res) => {
     }
   }
 });
+//Admindata gets all the data if verification of id and token gues through.
 app.get("/admindata", verifyJWT, (req, res) => {
   const token = req.header("x-access-token");
   const id = req.header("user-id");
@@ -278,7 +280,7 @@ app.get("/admindata", verifyJWT, (req, res) => {
     })
     .catch((err) => err);
 });
-//behöver token check
+//Adminblock blocks the target for the cycles if adminid and token are correct.
 app.post("/adminblock", (req, res) => {
   const token = req.body.token;
   const id = req.body.id;
@@ -299,6 +301,7 @@ app.post("/adminblock", (req, res) => {
     })
     .catch((err) => err);
 });
+//Admindelete takes in an adminid, token and a target id to remove a user from the system
 app.post("/admindelete", (req, res) => {
   const token = req.body.token;
   const id = req.body.id;
@@ -316,6 +319,7 @@ app.post("/admindelete", (req, res) => {
     })
     .catch((err) => err);
 });
+//loggedin shows the ids that are currently logged in after jwt verification for the admin and removes dupplicates if a user is online on several browsers.
 app.get("/loggedin", verifyJWT, (req, res) => {
   var temparray = [];
 
@@ -333,6 +337,7 @@ app.get("/loggedin", verifyJWT, (req, res) => {
   }
   res.send(temparray);
 });
+//Adminchange takes in any variable to be changed for user id if given id, admin id and token + what to change.
 app.post("/adminchange", (req, res) => {
   var message = "Responce:";
   const { id, name, zip, address, password, email, prosumer, token, adminid } =
@@ -409,6 +414,7 @@ app.post("/adminchange", (req, res) => {
   }
   res.send(message);
 });
+//Factorydata takes in a token and an Id and gives out the information of the powerplants.
 app.get("/factorydata", (req, res) => {
   const token = req.header("x-access-token");
   const adminid = req.header("user-id");
@@ -423,6 +429,7 @@ app.get("/factorydata", (req, res) => {
     })
     .catch((err) => err);
 });
+//Factoryproduction takes in a token, ratio, adminid and target factory tochange the amount of generated power.
 app.post("/factoryproduction", (req, res) => {
   const token = req.body.token;
   const power = req.body.power;
@@ -443,6 +450,7 @@ app.post("/factoryproduction", (req, res) => {
     })
     .catch((err) => err);
 });
+//Factorytomarket takes in a token, ratio, adminid and target factory to an amount from the buffer to the market
 app.post("/factorytomarket", (req, res) => {
   const token = req.body.token;
   const amount = req.body.amount;
@@ -463,7 +471,7 @@ app.post("/factorytomarket", (req, res) => {
     })
     .catch((err) => err);
 });
-//skräp?
+//Factoryratio takes in a token, ratio, adminid and target factory to change its ratio going to the market or its buffer.
 app.post("/factoryratio", (req, res) => {
   const token = req.body.token;
   const ratio = req.body.ratio;
@@ -499,7 +507,6 @@ app.post("/marketprice", (req, res) => {
   )
     .then((resp) => {
       res.send(response.data);
-      //res.send("Please check the table below that the user has been removed")
     })
     .catch((err) => err);
 });

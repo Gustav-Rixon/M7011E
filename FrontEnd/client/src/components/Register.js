@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Axios from "axios";
 import { useNavigate } from "react-router-dom";
 Axios.defaults.withCredentials = false;
-
+// a function to clean the input to address and zip so that it can be used in Nominatim API
 function clean(value) {
   value = value.toLowerCase();
   value = value.replace(/å/g, "a");
@@ -11,6 +11,7 @@ function clean(value) {
   value = value.replace(/\s/g, "+");
   return value;
 }
+// Register component for Frontend
 function Register() {
   const navigate = useNavigate();
   const [name, setName] = useState("");
@@ -33,7 +34,7 @@ function Register() {
       .then((response) => {
         if (response.data.succ) {
           alert("Successfull Registration");
-          navigate("/sign-in");
+          navigate("/login");
         }
         if (response.data.message) {
           setLoginStatus(response.data.message);
