@@ -1,0 +1,108 @@
+@import url('https://fonts.googleapis.com/css?family=Fira+Sans:400,500,600,700,800');
+
+* {
+  box-sizing: border-box;
+}
+body {
+  background: #1C8EF9 !important;
+  min-height: 100vh;
+  display: flex;
+  font-weight: 400;
+  font-family: 'Fira Sans', sans-serif;
+}
+
+
+
+body, html, .App, #root, .auth-wrapper {
+  width: 100%;
+}
+
+
+.App {
+  text-align: center;
+}
+.Register{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.Register input{
+  width: 300px;
+  height: 40px;
+  margin: 10px;
+  font-size: 20px;
+}
+.Login{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.Login input{
+  width: 300px;
+  height: 40px;
+  margin: 10px;
+  font-size: 20px;
+}
+.LoginPage{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.LoginPage input{
+  width: 300px;
+  height: 40px;
+  margin: 10px;
+  font-size: 20px;
+}
+.horizontal-slider {
+  width: 100%;
+  max-width: 500px;
+  height: 10vh;
+  margin: auto;
+}
+.example-thumb {
+  cursor: pointer;
+  position: absolute;
+  z-index: 100;
+  background: #ffffff;
+  border: 5px solid #000000;
+  border-radius: 100%;
+  display: block;
+  box-shadow: 0 0 2px 0 rgb(0 0 0 / 44%);
+}
+.example-thumb.active {
+  background-color: grey;
+}
+.example-track {
+  position: relative;
+  background: #ddd;
+}
+.example-track.example-track-0 {
+  background: #83a9ff;
+}
+.horizontal-slider .example-track {
+  top: 20px;
+  height: 4px;
+}
+.horizontal-slider .example-thumb {
+  top: 12px;
+  width: 10px;
+  outline: none;
+  height: 10px;
+  line-height: 38px;
+}
+.AdminPage{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.AdminPage input{
+  width: 300px;
+  height: 40px;
+  margin: 10px;
+  font-size: 20px;
+}
