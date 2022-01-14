@@ -24,7 +24,7 @@ This project was made for [M7011E "Design of Dynamic Web Systems"](https://www.l
   
   * `pip install requirements.txt`
   
-  Setup MySQL database from our database schema [ADD FILE NAME]
+  Setup MySQL database from our database schema database.sql
   
   Configure database and JWT token credentials in configuration.json.
   
@@ -37,7 +37,7 @@ From /../M7011E run python .\main.py
 
 Documentation is located in docs.
 
-From docs run `sphinx-apidoc -o . ..`
+From docs run `make html`
 
 Then view index.html from you favorite web browsers.
 
