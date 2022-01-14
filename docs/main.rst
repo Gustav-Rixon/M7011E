@@ -1,7 +1,7 @@
-Market module
-=============
+main module
+===========
 
-.. automodule:: Market
+.. automodule:: main
    :members:
    :undoc-members:
    :show-inheritance:
