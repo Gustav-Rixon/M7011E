@@ -72,7 +72,7 @@ class Events:
 
     def blackout_house_hold():
         global global_household_list
-        target = random.randint(1, len(global_household_list))
+        target = random.randint(1, len(global_household_list)+1)
         number_of_cycels = random.randint(1, 10)
         for household in global_household_list:
             if household._id == target:
