@@ -563,6 +563,17 @@ def add_house_hold(username):
 
 
 def upload_user_pic(pic_name, user_id, type):
+    """[summary]
+        Uploads users picture path to database
+
+    Args:
+        pic_name ([String]): [name of pic]
+        user_id ([String]): [user id]
+        type ([String]): [admin or user]
+
+    Returns:
+        [String]: [1 if success, 0 if failed]
+    """
     try:
         connection = database_cred()
         cursor = connection.cursor()
