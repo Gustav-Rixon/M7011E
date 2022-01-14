@@ -1,8 +1,7 @@
-Lorax module
-============
+test module
+===========
 
-.. automodule:: Lorax
+.. automodule:: test
    :members:
    :undoc-members:
    :show-inheritance:
-   

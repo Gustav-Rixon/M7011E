@@ -242,7 +242,7 @@ class Simulator:
         """
         Simulator.get_JWC_keys()
         self._consumer_households_in_siumulation, self._prosumer_households_in_siumulation, self._power_plant = Simulator.setupSim()
-        self._simulator_market = Market(1000)
+        self._simulator_market = Market(10000000)
 
         global global_household_list
         global global_power_plant_list
@@ -302,7 +302,7 @@ class Simulator:
                 print(
                     f"????????????????? {global_market.market_buffert.content} ?????????????????")
                 print(f"POWER{global_power_plant_list[0]._production}")
-            sleep(1)
+            sleep(10)
 
         # On Windows the subprocesses will import (i.e. execute) the main module at start. You need to insert an if __name__ == '__main__': guard in the main module to avoid creating subprocesses
         # set_temp(0,"Strandv%C3%A4gen%205", "104%2040")
@@ -315,6 +315,15 @@ class SimulatorEndPoints:
 
     # @rate_limited(1/10, mode='kill')
     def on_change_power_plant_output(request):
+        """[summary]
+            Changes a power plants output.
+
+        Args:
+            request ([WSGI request]): [Takes a admin id and its token. Then target (powerplant id) and what to change it tp]
+
+        Returns:
+            [Response]: [Response depends on request]
+        """
         if request.method == ('POST'):
             if check_JWT(request.args.get("token"), request.args.get('id'), adminKey):
 
@@ -342,6 +351,14 @@ class SimulatorEndPoints:
         return Response("Wrong request method")
 
     def view_power_plant(request):
+        """[summary]
+            Show information on power plants in the simulation.
+        Args:
+            request ([WSGI request]): [Takes a admin and its token]
+
+        Returns:
+            [Response]: [Response depends on request. If succ returns a view of all powerplants]
+        """
         if request.method == ('GET'):
             if check_JWT(request.args.get("token"), request.args.get('id'), adminKey):
                 data = []
@@ -355,6 +372,14 @@ class SimulatorEndPoints:
         return Response("Wrong request method")
 
     def change_power_plant_ratio(request):
+        """[summary]
+            Changes how much of the power plants power should be sent to its buffert or the market.
+        Args:
+            request ([WSGI request]): [Takes a admin and its token and a target]
+
+        Returns:
+             [Response]: [Response depends on request.]
+        """
         if request.method == ('POST'):
             if check_JWT(request.args.get("token"), request.args.get('id'), adminKey):
                 for power_plant in global_power_plant_list:
@@ -371,6 +396,15 @@ class SimulatorEndPoints:
         return Response("Wrong request method")
 
     def send_to_market(request):
+        """[summary]
+            Sends a amount of the power plants buffert to the market.
+
+        Args:
+            request ([WSGI request]): [Takes a admin and its token and a target and how much]
+
+        Returns:
+            [Response]: [Response depends on request.]
+        """
         if request.method == ('POST'):
             if check_JWT(request.args.get("token"), request.args.get('id'), adminKey):
                 for power_plant in global_power_plant_list:
@@ -393,6 +427,15 @@ class SimulatorEndPoints:
         return Response("Wrong request method")
 
     def buy(request, **data):
+        """[summary]
+            Used by users to buy from market
+
+        Args:
+            request ([WSGI request]): [Takes a user id and its token and how much]
+
+        Returns:
+            [Response]: [Response depends on request.]
+        """
         global global_market
         if request.method == ('POST'):
             if check_JWT(data.get("token"), data.get('id'), key):
@@ -408,6 +451,15 @@ class SimulatorEndPoints:
         return Response("Wrong request method")
 
     def sell(request, **data):
+        """[summary]
+            Used by users to sell to market
+
+        Args:
+            request ([WSGI request]): [Takes a user id and its token and how much]
+
+        Returns:
+            [Response]: [Response depends on request.]
+        """
         global global_market
         if request.method == ('POST'):
             if check_JWT(data.get("token"), data.get('id'), key):
@@ -426,6 +478,15 @@ class SimulatorEndPoints:
 
     # @rate_limited(1/10, mode='kill')  # FIX
     def change_market_size(request):
+        """[summary]
+            Admin can change how big or small the market should be 
+
+        Args:
+            request ([WSGI request]): [Checks if its a admin]
+
+        Returns:
+            [Response]: [Response depends on request.]
+        """
         if request.method == ('POST'):
             if check_JWT(request.args.get("token"), request.args.get('id'), adminKey):
                 global global_market
@@ -436,6 +497,16 @@ class SimulatorEndPoints:
         return Response("Wrong request method")
 
     def block_user(request):
+        """[summary]
+
+            An admin can block a user from selling a number of cycels
+
+        Args:
+            request ([WSGI request]): [Contains admin cred, the target id and for how long.]
+
+        Returns:
+            [Response]: [Response depends on request.]
+        """
         if request.method == ('POST'):
             if check_JWT(request.args.get("token"), request.args.get('id'), adminKey):
                 global global_household_list
@@ -453,6 +524,16 @@ class SimulatorEndPoints:
         return Response("Wrong request method")
 
     def remove_block(request, **data):
+        """[summary]
+
+            Admin can remove a block
+
+        Args:
+            request ([WSGI request]): [Contains admin cred, the target id and for how much to remove.]
+
+        Returns:
+            [Response]: [Response depends on request.]
+        """
         if request.method == ('POST'):
             if check_JWT(data.get("token"), data.get('id'), adminKey):
                 global global_household_list
@@ -471,11 +552,14 @@ class SimulatorEndPoints:
 
     def get_house_hold_data(request, **data):
         """[summary]
+
+            A user can get there data from this endpoint
+
         Args:
-            request ([type]): [description]
+            request ([WSGI request]): [User id and token]
 
         Returns:
-            [type]: [description]
+            [Response]: [Users household information]
         """
         if request.method == ('GET'):
             global global_household_list
@@ -498,6 +582,16 @@ class SimulatorEndPoints:
         return Response("Wrong request method")
 
     def get_market_info(request, **data):
+        """[summary]
+
+            Here all can get the current market status 
+
+        Args:
+            request ([WSGI request]): [nothing is required]
+
+        Returns:
+            [Response]: [Market info]
+        """
         if request.method == ('GET'):
             global global_market
             data = {"market_size": str(global_market.market_buffert.capacity)+" kWh",
@@ -507,6 +601,16 @@ class SimulatorEndPoints:
         return Response("Wrong request method")
 
     def change_market_price(request):
+        """[summary]
+
+            admin can change what the market price is.
+
+        Args:
+            request ([WSGI request]): [admin cred and what the price should be]
+
+        Returns:
+            [Response]: [Response depends on request.]
+        """
         if request.method == ('POST'):
             if check_JWT(request.args.get("token"), request.args.get('id'), adminKey):
                 global_market.market_price = int(
@@ -516,6 +620,16 @@ class SimulatorEndPoints:
         return Response("Wrong request method")
 
     def change_ratio_to_market(request, **data):
+        """[summary]
+
+        Here a prosumer can change how much of its power should be sent to the market
+
+        Args:
+            request ([WSGI request]): [user cred and ratio]
+
+        Returns:
+            [Response]: [Response depends on request.]
+        """
         if request.method == ('POST'):
             if check_JWT(data.get("token"), data.get('id'), key):
                 global global_household_list
@@ -548,10 +662,14 @@ class SimulatorEndPoints:
 
     def upload_file(request):
         """[summary]
-            This route recives an file from an form typ file and uplodes it to the server.
+
+        Here admin and user can upload a pic
+
+        Args:
+            request ([WSGI request]): [user/admin cred, and a picture]
 
         Returns:
-            [redirect]: [redirects user after successfully a upload, returns error if not successfully]
+            [Response]: [Response depends on request.]
         """
         if request.method == 'POST':
             if request.args.get("type") == "admin":
@@ -582,7 +700,6 @@ class SimulatorEndPoints:
 
     def send_file(request):
         file_name = SimulatorEndPoints.get_pic(request)
-
         if request.args.get('type') == "admin":
             UPLOAD_FOLDER = 'Database/ProfilePictures/admin/'
             name = "admin"
@@ -595,6 +712,16 @@ class SimulatorEndPoints:
         return Response(encoded_string)
 
     def get_pic(request):
+        """[summary]
+
+        Retrives the file name of the users picture
+
+        Args:
+            request ([WSGI request]): [admin or user cred.]
+
+        Returns:
+            [Response/file]: [Response depends on request. Or the file name]
+        """
         if request.method == 'GET':
             if request.args.get('type') == "admin":
                 if check_JWT(request.args.get('token'), int(request.args.get('id')), adminKey):
@@ -609,11 +736,13 @@ class SimulatorEndPoints:
     def admin_view(request):
         """[summary]
 
+        Get all user data if admin
+
         Args:
-            request ([type]): [description]
+            request ([WSGI request]): [admin cred]
 
         Returns:
-            [type]: [description]
+            [Response]: [All user data]
         """
         if request.method == 'GET':
             if check_JWT(request.args.get('token'), int(request.args.get('id')), adminKey):
@@ -634,6 +763,16 @@ class SimulatorEndPoints:
         return Response("Wrong request method")
 
     def change_user_credentials(request):
+        """[summary]
+
+        Admin can change a users cred
+
+        Args:
+            request ([WSGI request]): [admin cred]
+
+        Returns:
+            [Response]: [1 if succses, 0 if no change]
+        """
         if request.method == 'POST':
             if check_JWT(request.args.get('token'), int(request.args.get('id')), adminKey):
 
@@ -679,7 +818,7 @@ class SimulatorEndPoints:
         """[summary]
 
         Args:
-            request ([type]): [description]
+            request ([WSGI request]): [description]
 
         Returns:
             [String]: [Returns 0 if no change was made. Returns 1 if change was made.]
@@ -696,19 +835,6 @@ class SimulatorEndPoints:
 
     @responder
     def application(environ, start_response):
-        """[summary]
-            This is API written in werkzeug.
-
-        Endpoints:
-            test
-
-        Args:
-            environ ([type]): [description]
-            start_response ([type]): [description]
-
-        Returns:
-            [type]: [description]
-        """
 
         url_map = Map([
             Rule(

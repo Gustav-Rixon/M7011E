@@ -22,9 +22,11 @@ This project was made for [M7011E "Design of Dynamic Web Systems"](https://www.l
 ### Run
   * `git clone https://github.com/Gustav-Rixon/M7011E`
   
-  Setup MySQL database from our database schema [ADD FILE NAME]
+  * `pip install requirements.txt`
   
-  Configure configuration.json in conf with your database credentials. You can also change the keys for the JWT tokens which we recommend. 
+  Setup MySQL database from our database schema database.sql
+  
+  Configure database and JWT token credentials in configuration.json.
   
 ## Usage
 
@@ -35,7 +37,7 @@ From /../M7011E run python .\main.py
 
 Documentation is located in docs.
 
-From docs run `sphinx-apidoc -o . ..`
+From docs run `make html`
 
 Then view index.html from you favorite web browsers.
 
